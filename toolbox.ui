@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PyMeshTool</class>
+ <widget class="QWidget" name="PyMeshTool">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>377</width>
+    <height>257</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="1" column="1">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QPushButton" name="pbFileSelect">
+       <property name="statusTip">
+        <string>Select Python Script.</string>
+       </property>
+       <property name="whatsThis">
+        <string>Select Python Script.</string>
+       </property>
+       <property name="text">
+        <string>File</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="pbRunFile">
+       <property name="statusTip">
+        <string>Execute Python Script.</string>
+       </property>
+       <property name="whatsThis">
+        <string>Execute Python Script.</string>
+       </property>
+       <property name="text">
+        <string>RunFile</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLineEdit" name="filename">
+     <property name="statusTip">
+      <string>Path to Python Script.</string>
+     </property>
+     <property name="whatsThis">
+      <string>Path to Python Script.</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QCheckBox" name="cbClearPrevious">
+     <property name="statusTip">
+      <string>Clear all Meshes which were created in the last run.</string>
+     </property>
+     <property name="whatsThis">
+      <string>Clear all Meshes which were created in the last run.</string>
+     </property>
+     <property name="text">
+      <string>Clear previous created Meshes</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
