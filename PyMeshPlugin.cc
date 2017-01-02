@@ -129,17 +129,18 @@ void PyMeshPlugin::initPython()
 
     Py_Initialize();
 
-    boost::python::object main_module(PyImport_AddModule("__main__"));
+    boost::python::object main_module(boost::python::handle<>(PyImport_AddModule("__main__")));
+
+    // redirect python output
     initPyLogger(main_module.ptr(), this);
 
-    // add openmesh module
-    
+    // add openmesh module    
     boost::python::object main_namespace = main_module.attr("__dict__");
 
     boost::python::object om_module((boost::python::handle<>(PyImport_ImportModule("openmesh"))));
     main_namespace["openmesh"] = om_module;
 
-    // hook into constructors
+    // hook into mesh constructors
     registerFactoryMethods(this, om_module);
     
 }
