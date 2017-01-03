@@ -6,17 +6,26 @@
 
 PyMeshPlugin* g_plugin = 0;
 
-std::shared_ptr<OpenMesh::Python::TriMesh> createTriMesh()
+template<typename T>
+struct NoDeleter
 {
-    OpenMesh::Python::TriMesh* mesh = g_plugin->createTriMesh();
-    return std::shared_ptr<OpenMesh::Python::TriMesh>(mesh, [](OpenMesh::Python::TriMesh*) {});
+    void operator()(T*){}
+};
+
+
+ptr::shared_ptr<OpenMesh::Python::TriMesh> createTriMesh()
+{
+    typedef OpenMesh::Python::TriMesh Mesh;
+    Mesh* mesh = g_plugin->createTriMesh();
+    return std::shared_ptr<Mesh>(mesh, NoDeleter<Mesh>());
 }
 
 
-std::shared_ptr<OpenMesh::Python::PolyMesh> createPolyMesh()
+ptr::shared_ptr<OpenMesh::Python::PolyMesh> createPolyMesh()
 {
-    OpenMesh::Python::PolyMesh* mesh = g_plugin->createPolyMesh();
-    return std::shared_ptr<OpenMesh::Python::PolyMesh>(mesh, [](OpenMesh::Python::PolyMesh*) {});
+    typedef OpenMesh::Python::PolyMesh Mesh;
+    Mesh* mesh = g_plugin->createPolyMesh();
+    return std::shared_ptr<Mesh>(mesh, NoDeleter<Mesh>());
 }
 
 void registerFactoryMethods(PyMeshPlugin* plugin, boost::python::object& om_module)
