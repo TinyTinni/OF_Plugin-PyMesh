@@ -103,6 +103,8 @@ public:
 
 private:
 
+    boost::python::object main_module_;
+
     PyMeshToolbox* toolbox_;
     std::vector<int> m_createdObjects;
 
