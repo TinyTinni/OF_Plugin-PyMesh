@@ -1,8 +1,11 @@
 ﻿# OpenMesh Python Plugin for OpenFlipper
-This Plugin runs a given Python Script with OpenMesh Bindings.
-Created Meshes will be displayed in OpenFlipper.
-This allows you to write Geometry Processing Algorithms in Python
-and 
+OpenFlipper Plugin which runs any Python script with OpenMesh Python bindings.
+The meshes (poly/tri) created by the script will be displayed in OpenFlipper as normal meshes.
+
+This allows you to write geometry processing algorithms in Python.
+
+The Plugin does not define an Interface for Python, so
+no changes are required to already existing scripts.
 
 ## Requierements
 
@@ -15,27 +18,31 @@ and
 
 
 ## How-To-Use
-	1. Write a Python script with OpenMesh bindings
+	1. Write a Python script with OpenMesh bindings (nothing else required)
 	2. Start OpenFlipper
 	3. Select your saved Script in PyMesh's Toolbox
 	4. Press "Run Script"
 	5. See your result in the log window and/or the viewer
 
-An Example Python Script is included.
+An example Python script is included.
 
 You can also use the Script language included in OpenFlipper, search for
 `PyMesh.runPyScript` or `PyMesh.runPyScriptFile`.
 
 ## Python Object Lifetime
-Keep in mind, that the embedded python interpreter does not reset!
-Also, don't reference on in OpenFlipper deleted meshes in your Python Script,
-your program can crash.
+Keep in mind, that the embedded python interpreter does not reset!!
+
+OpenFlipper owns the underlying mesh ressources. Therefore, don't 
+access on in OpenFlipper deleted meshes in your Python script, e.g. a python variable references on a
+mesh from a previous run, which was deleted in OpenFlipper.
+Your program can and probably will crash.
 
 ## Project Status
-Project was created on windows and is not well tested. Maybe doesnt compile with Linux/MacOS.
+Project was created on windows. Maybe doesnt compile with Linux/MacOS.
 Please test and give some feedback.
 
-Maybe I will add some Python Bindings for OpenFlipper functions like "getTargets".
+Extensions:
+- Maybe I will add some Python bindings for OpenFlipper functions like "getTargets".
 
 ## License
 [GPLv3 License](./LICENSE) © Matthias Möller. Made with ♥ in Germany.
