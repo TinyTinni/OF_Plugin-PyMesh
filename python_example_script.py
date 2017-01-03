@@ -19,3 +19,6 @@ fh3 = mesh.add_face(vh_list)
 # !!! Don't Forget: normals are not updated automatically !!!
 mesh.update_normals()
 
+print("mesh created.")
+print("This Message and any errors (if exists) are shown in OF log.")
+
