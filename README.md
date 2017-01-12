@@ -11,7 +11,7 @@ no changes are required to already existing scripts.
 
 - [OpenFlipper](https://www.openflipper.org)(Qt >= 5.0)
 - [OpenMesh](https://www.openmesh.org)* (build with Python Bindings is __not__ required)
-- [Python](https://www.python.org) (tested >= 3.6) 
+- [Python](https://www.python.org) (tested >= 3.6, builds with 2.7) 
 - [Boost.Python](https://www.boost.org)
 
 *Already included in OpenFLipper
@@ -44,11 +44,11 @@ mesh from a previous run, which was deleted in OpenFlipper.
 Your program can and probably will crash.
 
 ## Project Status
-Project was created on windows. Maybe doesnt compile with Linux/MacOS.
+Project was created and tested on windows.
+Compiles under windows, maybe also under MacOs.
 Please test and give some feedback.
 
-Extensions:
-- Maybe I will add some Python bindings for OpenFlipper functions like "getTargets".
+Plugin can change, but I guess the interface (slot, for OF Script and the python binding interface) should be stable.
 
 ## License
 [GPLv3 License](./LICENSE) © Matthias Möller. Made with ♥ in Germany.
