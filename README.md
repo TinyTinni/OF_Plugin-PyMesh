@@ -29,7 +29,13 @@ An example Python script is included.
 You can also use the Script language included in OpenFlipper, search for
 `PyMesh.runPyScript` or `PyMesh.runPyScriptFile`.
 
-## Python Object Lifetime
+## About Custom Properties
+Custom properties created with python are supported. Remind, that the holding type of these properties
+are always `PyObject`. Usual OpenFlipper Plugins like the PropertyVis-Plugin does not support this type.
+At the current state, a transformation from a property holding a `PyObject` type to the corresponding
+C/C++ (pod only) type is __not__ supported.
+
+## About Python Object Lifetime
 Keep in mind, that the embedded python interpreter does not reset!!
 
 OpenFlipper owns the underlying mesh ressources. Therefore, don't 
