@@ -8,24 +8,12 @@
 #include <OpenFlipper/common/GlobalOptions.hh>
 
 // adds openmesh python module for inter language communication
-#include <OpenMesh/src/Python/Bindings.cc>
+//#include <OpenMesh/src/Python/Bindings.cc>
+#include "OMPyModule.hh"
 
 #include "MeshFactory.hh"
 
 #include <QFileDialog>
-
-//fix for msvc 2015 update 3, delete in future
-namespace boost
-{
-    template <>
-    OpenMesh::TriMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> const volatile * get_pointer<OpenMesh::TriMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> const volatile >(
-        OpenMesh::TriMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> const volatile *c)
-    {
-        return c;
-    }
-
-}
-
 
 PyMeshPlugin::PyMeshPlugin()
 {
@@ -121,11 +109,7 @@ void PyMeshPlugin::initPython()
     if (Py_IsInitialized())
         return;
 
-#if (PY_MAJOR_VERSION == 2)
-    PyImport_AppendInittab("openmesh", &OpenMesh::Python::initopenmesh); //untested
-#elif (PY_MAJOR_VERSION == 3)
-    PyImport_AppendInittab("openmesh", &OpenMesh::Python::PyInit_openmesh);
-#endif
+    PyImport_AppendInittab("openmesh", openmesh_pyinit_function);
 
     Py_Initialize();
 
