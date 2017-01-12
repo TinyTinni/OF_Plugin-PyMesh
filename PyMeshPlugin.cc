@@ -56,7 +56,7 @@ void PyMeshPlugin::slotSelectFile()
 void PyMeshPlugin::pluginsInitialized()
 {
     toolbox_ = new PyMeshToolbox();
-    Q_EMIT addToolbox("PyMesh", toolbox_);
+    Q_EMIT addToolbox("PyMesh", toolbox_, new QIcon(OpenFlipper::Options::iconDirStr() + OpenFlipper::Options::dirSeparator() + "pymesh_python.png"));
 
     toolbox_->pbRunFile->setIcon(QIcon(OpenFlipper::Options::iconDirStr() + OpenFlipper::Options::dirSeparator() + "arrow-right.png"));
     toolbox_->pbRunFile->setText("");
