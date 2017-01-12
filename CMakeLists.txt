@@ -9,7 +9,7 @@ endif()
 FIND_PACKAGE(Boost COMPONENTS python QUIET)
 
 
-if (${USE_STATIC_BOOST} OR Boost_USE_STATIC_LIBS)
+if (USE_STATIC_BOOST OR Boost_USE_STATIC_LIBS)
 	set( _flags ${flags_} BOOST_PYTHON_STATIC_LIB)#already set by OpenMesh/Python/Bindings.cc
 endif()
 
