@@ -1,6 +1,7 @@
 # from OpenMesh Tutorial
 from openmesh import *
 
+
 mesh = TriMesh()
 
 vh0 = mesh.add_vertex(TriMesh.Point(0, 1, 0))
@@ -18,21 +19,6 @@ fh3 = mesh.add_face(vh_list)
 
 # !!! Don't Forget: normals are not updated automatically !!!
 mesh.update_normals()
-
-prop_handle = VPropHandle()
-mesh.add_property(prop_handle, "cogs")
-
-for vh in mesh.vertices():
-    cog = TriMesh.Point(0,0,0)
-    valence = 0
-    for neighbor in mesh.vv(vh):
-        cog += mesh.point(neighbor)
-        valence += 1
-    mesh.set_property(prop_handle, vh, cog / valence)
-    print(str(mesh.property(prop_handle,vh)))
-
-#mesh.remove_property(prop_handle)
-
 
 print("mesh created.")
 print("This Message and any errors (if exists) are shown in OF log.")

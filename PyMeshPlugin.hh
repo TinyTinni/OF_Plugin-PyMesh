@@ -40,6 +40,7 @@
 #include <OpenFlipper/BasePlugin/ToolboxInterface.hh>
 #include <OpenFlipper/BasePlugin/LoadSaveInterface.hh>
 #include <OpenFlipper/BasePlugin/BackupInterface.hh>
+#include <OpenFlipper/BasePlugin/ProcessInterface.hh>
 
 #include <ObjectTypes/PolyMesh/PolyMesh.hh>
 #include <ObjectTypes/TriangleMesh/TriangleMesh.hh>
@@ -51,7 +52,7 @@
 #include "PyMeshToolbox.hh"
 
 
-class PyMeshPlugin : public QObject, BaseInterface, ToolboxInterface, LoadSaveInterface, LoggingInterface, BackupInterface
+class PyMeshPlugin : public QObject, BaseInterface, ToolboxInterface, LoadSaveInterface, LoggingInterface, BackupInterface, ProcessInterface
 {
   Q_OBJECT
   Q_INTERFACES(BaseInterface)
@@ -59,6 +60,7 @@ class PyMeshPlugin : public QObject, BaseInterface, ToolboxInterface, LoadSaveIn
   Q_INTERFACES(LoadSaveInterface)
   Q_INTERFACES(LoggingInterface)
   Q_INTERFACES(BackupInterface)
+  Q_INTERFACES(ProcessInterface)
   Q_PLUGIN_METADATA(IID "org.OpenFlipper.Plugins.Plugin-PyMesh")
 
 Q_SIGNALS:
@@ -77,14 +79,20 @@ Q_SIGNALS:
   void log(Logtype _type, QString _message);
   void log(QString _message);
 
+  // Process Interface
+  void startJob(QString _jobId, QString _description, int _min, int _max, bool _blocking = false);
+  void finishJob(QString _jobId);
+
   // Backup Interface
   void createBackup(int _objectid, QString _name, UpdateType _type = UPDATE_ALL);
 
 public Q_SLOTS:
 
   void runPyScriptFile(const QString& _filename, bool _clearPrevious);
+  void runPyScriptFileAsync(const QString& _filename, bool _clearPrevious);
 
   void runPyScript(const QString& _script, bool _clearPrevious);
+  void runPyScriptAsync(const QString& _script, bool _clearPrevious);
 
 public:
 
@@ -106,9 +114,10 @@ private:
     boost::python::object main_module_;
 
     PyMeshToolbox* toolbox_;
-    std::vector<int> m_createdObjects;
+    std::vector<int> createdObjects_;
 
     void initPython();
+    void runPyScript_internal(const QString& _script, bool _clearPrevious);
 
 private Q_SLOTS:
 
@@ -119,6 +128,10 @@ private Q_SLOTS:
   void slotRunScript();
 
   void slotSelectFile();
+
+  void canceledJob(QString _job);
+
+  void runPyScriptFinished();
 
 public Q_SLOTS:
   QString version(){ return QString("1.0"); }

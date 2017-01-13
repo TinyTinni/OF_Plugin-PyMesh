@@ -15,7 +15,12 @@
 
 #include <QFileDialog>
 
-PyMeshPlugin::PyMeshPlugin()
+static const char* g_job_id = "PyMesh Interpreter";
+
+PyMeshPlugin::PyMeshPlugin():
+    main_module_(),
+    toolbox_(),
+    createdObjects_()
 {
 
 }
@@ -63,7 +68,7 @@ void PyMeshPlugin::slotRunScript()
 {
     const QString filename = toolbox_->filename->text();
     OpenFlipperSettings().setValue("Plugin-PyMesh/LastOpenedFile", filename);
-    runPyScriptFile(filename, toolbox_->cbClearPrevious->isChecked());
+    runPyScriptFileAsync(filename, toolbox_->cbClearPrevious->isChecked());
 }
 
 ////////////////////////////////////////////////////////////////
@@ -79,26 +84,66 @@ void PyMeshPlugin::runPyScriptFile(const QString& _filename, bool _clearPrevious
     runPyScript(QTextStream(&f).readAll(), _clearPrevious);
 }
 
+void PyMeshPlugin::runPyScriptFileAsync(const QString& _filename, bool _clearPrevious)
+{
+    QFile f(_filename);
+    if (!f.exists())
+    {
+        Q_EMIT log(LOGERR, QString("Could not find file %1").arg(_filename));
+    }
+    f.open(QFile::ReadOnly);
+    runPyScriptAsync(QTextStream(&f).readAll(), _clearPrevious);
+}
+
+void PyMeshPlugin::runPyScriptAsync(const QString& _script, bool _clearPrevious)
+{
+    OpenFlipperThread* th = new OpenFlipperThread(g_job_id);
+    connect(th, SIGNAL(finished()), this, SLOT(runPyScriptFinished()));
+
+    connect(th, &OpenFlipperThread::function, this, [_script, _clearPrevious, this]()
+    {
+        this->runPyScript_internal(_script, _clearPrevious);
+        Q_EMIT this->finishJob(QString(g_job_id));
+    }
+    , Qt::DirectConnection);
+    // Run Script
+
+    emit startJob(QString(g_job_id), "Runs Python Script", 0, 0, true);
+    th->start();
+    th->startProcessing();
+}
 
 void PyMeshPlugin::runPyScript(const QString& _script, bool _clearPrevious)
+{
+    runPyScript_internal(_script, _clearPrevious);
+    runPyScriptFinished();
+}
+
+void PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevious)
 {
     // init
     initPython();
 
     // clear env
     if (_clearPrevious)
-        for (size_t i = 0; i < m_createdObjects.size(); ++i)
-            Q_EMIT deleteObject(m_createdObjects[i]);
-    m_createdObjects.clear();
+        for (size_t i = 0; i < createdObjects_.size(); ++i)
+            Q_EMIT deleteObject(createdObjects_[i]);
+    createdObjects_.clear();
 
-    // Run Script
+    QString jobName = name() + " PyRun Worker";
+    OpenFlipperThread* th = new OpenFlipperThread(jobName);
+    connect(th, SIGNAL(finished()), this, SLOT(runPyScriptFinished()));
+
     PyRun_SimpleString(_script.toLatin1());
+}
 
+void PyMeshPlugin::runPyScriptFinished()
+{
     // Update
-    for (size_t i = 0; i < m_createdObjects.size(); ++i)
+    for (size_t i = 0; i < createdObjects_.size(); ++i)
     {
-        Q_EMIT updatedObject(m_createdObjects[i], UPDATE_ALL);
-        Q_EMIT createBackup(m_createdObjects[i], "Original Object");
+        Q_EMIT updatedObject(createdObjects_[i], UPDATE_ALL);
+        Q_EMIT createBackup(createdObjects_[i], "Original Object");
     }
 
     PluginFunctions::viewAll();
@@ -112,6 +157,7 @@ void PyMeshPlugin::initPython()
     PyImport_AppendInittab("openmesh", openmesh_pyinit_function);
 
     Py_Initialize();
+    PyEval_InitThreads();
 
     main_module_ = boost::python::object(boost::python::handle<>(PyImport_AddModule("__main__")));
 
@@ -129,6 +175,24 @@ void PyMeshPlugin::initPython()
     
 }
 
+// Abort functions
+int quitPython(void*)
+{
+    PyErr_SetInterrupt();
+    return -1;
+}
+
+void PyMeshPlugin::canceledJob(QString _job)
+{
+    if (!_job.contains(g_job_id))
+        return;
+
+    PyGILState_STATE state = PyGILState_Ensure();
+    Py_AddPendingCall(&quitPython, NULL);
+    PyGILState_Release(state);    
+
+    Q_EMIT log(LOGINFO, "Python Execution Canceled.");
+}
 
 ///////////////////////////////////////////////////////////////////
 // Python callback functions
@@ -151,7 +215,7 @@ OpenMesh::Python::TriMesh* PyMeshPlugin::createTriMesh()
     TriMeshObject* object;
     PluginFunctions::getObject(objectId, object);
 
-    m_createdObjects.push_back(objectId);
+    createdObjects_.push_back(objectId);
 
     return reinterpret_cast<OpenMesh::Python::TriMesh*>(object->mesh());
 }
@@ -165,7 +229,7 @@ OpenMesh::Python::PolyMesh* PyMeshPlugin::createPolyMesh()
     PolyMeshObject* object;
     PluginFunctions::getObject(objectId, object);
 
-    m_createdObjects.push_back(objectId);
+    createdObjects_.push_back(objectId);
 
     return reinterpret_cast<OpenMesh::Python::PolyMesh*>(object->mesh());
 }
