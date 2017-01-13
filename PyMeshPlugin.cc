@@ -97,6 +97,7 @@ void PyMeshPlugin::runPyScriptFileAsync(const QString& _filename, bool _clearPre
 
 void PyMeshPlugin::runPyScriptAsync(const QString& _script, bool _clearPrevious)
 {
+    initPython();
     OpenFlipperThread* th = new OpenFlipperThread(g_job_id);
     connect(th, SIGNAL(finished()), this, SLOT(runPyScriptFinished()));
 
