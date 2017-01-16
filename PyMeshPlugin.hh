@@ -94,6 +94,8 @@ public Q_SLOTS:
   void runPyScript(const QString& _script, bool _clearPrevious);
   void runPyScriptAsync(const QString& _script, bool _clearPrevious);
 
+  void convertPropsPyToCpp(const IdList& _list);
+
 public:
 
   // Python callback functions

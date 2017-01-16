@@ -72,6 +72,117 @@ void PyMeshPlugin::slotRunScript()
 }
 
 ////////////////////////////////////////////////////////////////
+// Property Conversion
+
+template<template<class> typename Handle, typename T, typename MeshT>
+bool createAndCopyProperty(MeshT* mesh, OpenMesh::PropertyT<boost::python::object>* pyProp)
+{
+    if (!boost::python::extract<T>(*pyProp->data()).check())
+        return false;
+    // get old handle
+    Handle<boost::python::object> pyHandle;
+    mesh->get_property_handle(pyHandle, pyProp->name());
+
+    // create new type
+    Handle<T> omHandle;
+    mesh->add_property(omHandle, pyProp->name());
+
+    // copy
+    auto& omProp = mesh->property(omHandle).data_vector();
+    auto& propvec = pyProp->data_vector();
+    for (size_t i = 0; i < propvec.size(); ++i)
+        omProp[i] = boost::python::extract<T>(propvec[i]);
+
+    // remove old
+    mesh->remove_property(pyHandle);
+    mesh->garbage_collection();
+    mesh->property_stats();
+    return true;
+}
+
+template<template<class> typename Handle, typename MeshT>
+void convertProps(MeshT* mesh, OpenMesh::PropertyT<boost::python::object>* pyProp)
+{
+    if (createAndCopyProperty<Handle, bool>(mesh, pyProp))
+        return;
+    if (createAndCopyProperty<Handle, short>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, int>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, float>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, double>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, ACG::Vec2f>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, ACG::Vec2d>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, ACG::Vec3f>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, ACG::Vec3d>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, ACG::Vec4f>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, ACG::Vec4d>(mesh,pyProp))
+        return;
+}
+
+
+template<typename MeshT>
+void convertProps(MeshT* mesh)
+{
+    std::vector<OpenMesh::PropertyT<boost::python::object>*> props;
+    //VProps
+    for (auto it = mesh->vprops_begin(); it != mesh->vprops_end(); ++it)
+    {
+        OpenMesh::PropertyT<boost::python::object>* p = dynamic_cast<OpenMesh::PropertyT<boost::python::object>*>(*it);
+        if (p)
+            props.push_back(p);
+    }
+
+    for (auto p : props)
+        convertProps<OpenMesh::VPropHandleT>(mesh, p);
+    props.clear();
+
+    //EProps
+    for (auto it = mesh->eprops_begin(); it != mesh->eprops_end(); ++it)
+    {
+        OpenMesh::PropertyT<boost::python::object>* p = dynamic_cast<OpenMesh::PropertyT<boost::python::object>*>(*it);
+        if (p)
+            props.push_back(p);
+    }
+
+    for (auto p : props)
+        convertProps<OpenMesh::EPropHandleT>(mesh, p);
+    props.clear();
+
+    //FProps
+    for (auto it = mesh->fprops_begin(); it != mesh->fprops_end(); ++it)
+    {
+        OpenMesh::PropertyT<boost::python::object>* p = dynamic_cast<OpenMesh::PropertyT<boost::python::object>*>(*it);
+        if (p)
+            props.push_back(p);
+    }
+
+    for (auto p : props)
+        convertProps<OpenMesh::FPropHandleT>(mesh, p);
+    props.clear();
+
+    //MProps
+    // conversion problems in generic version, write own convert code for mprops
+    //for (auto it = mesh->mprops_begin(); it != mesh->mprops_end(); ++it)
+    //{
+    //    OpenMesh::PropertyT<boost::python::object>* p = dynamic_cast<OpenMesh::PropertyT<boost::python::object>*>(*it);
+    //    if (p)
+    //        props.push_back(p);
+    //}
+
+    //for (auto p : props)
+    //    convertProps<OpenMesh::MPropHandleT>(mesh, p);
+    //props.clear();
+}
+
+////////////////////////////////////////////////////////////////
 // Python Interpreter Setup&Run
 void PyMeshPlugin::runPyScriptFile(const QString& _filename, bool _clearPrevious)
 {
@@ -141,6 +252,7 @@ void PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
 void PyMeshPlugin::runPyScriptFinished()
 {
     // Update
+    convertPropsPyToCpp(createdObjects_);
     for (size_t i = 0; i < createdObjects_.size(); ++i)
     {
         Q_EMIT updatedObject(createdObjects_[i], UPDATE_ALL);
@@ -148,6 +260,20 @@ void PyMeshPlugin::runPyScriptFinished()
     }
 
     PluginFunctions::viewAll();
+}
+
+void PyMeshPlugin::convertPropsPyToCpp(const IdList& _list)
+{
+    for (auto& i : _list)
+    {
+        TriMeshObject* triobj;
+        if (PluginFunctions::getObject(i, triobj))
+            convertProps(triobj->mesh());
+        PolyMeshObject* polyobj;
+        if (PluginFunctions::getObject(i, polyobj))
+            convertProps(polyobj->mesh());
+        Q_EMIT updatedObject(i, UPDATE_ALL);
+    }
 }
 
 void PyMeshPlugin::initPython()
