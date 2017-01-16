@@ -95,8 +95,6 @@ bool createAndCopyProperty(MeshT* mesh, OpenMesh::PropertyT<boost::python::objec
 
     // remove old
     mesh->remove_property(pyHandle);
-    mesh->garbage_collection();
-    mesh->property_stats();
     return true;
 }
 
@@ -247,12 +245,12 @@ void PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
     connect(th, SIGNAL(finished()), this, SLOT(runPyScriptFinished()));
 
     PyRun_SimpleString(_script.toLatin1());
+    convertPropsPyToCpp_internal(createdObjects_);
 }
 
 void PyMeshPlugin::runPyScriptFinished()
 {
     // Update
-    convertPropsPyToCpp(createdObjects_);
     for (size_t i = 0; i < createdObjects_.size(); ++i)
     {
         Q_EMIT updatedObject(createdObjects_[i], UPDATE_ALL);
@@ -262,7 +260,7 @@ void PyMeshPlugin::runPyScriptFinished()
     PluginFunctions::viewAll();
 }
 
-void PyMeshPlugin::convertPropsPyToCpp(const IdList& _list)
+void PyMeshPlugin::convertPropsPyToCpp_internal(const IdList& _list)
 {
     for (auto& i : _list)
     {
@@ -272,8 +270,14 @@ void PyMeshPlugin::convertPropsPyToCpp(const IdList& _list)
         PolyMeshObject* polyobj;
         if (PluginFunctions::getObject(i, polyobj))
             convertProps(polyobj->mesh());
-        Q_EMIT updatedObject(i, UPDATE_ALL);
     }
+}
+
+void PyMeshPlugin::convertPropsPyToCpp(const IdList& _list)
+{
+    convertPropsPyToCpp_internal(_list);
+    for (auto& i : _list)
+        Q_EMIT updatedObject(i, UPDATE_ALL);
 }
 
 void PyMeshPlugin::initPython()

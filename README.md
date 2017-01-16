@@ -31,9 +31,8 @@ You can also use the Script language included in OpenFlipper, search for
 
 ## About Custom Properties
 Custom properties created with python are supported. Remind, that the holding type of these properties
-are always `PyObject`. Usual OpenFlipper Plugins like the PropertyVis-Plugin does not support this type.
-At the current state, a transformation from a property holding a `PyObject` type to the corresponding
-C/C++ (pod only) type is __not__ supported.
+are always `PyObject`. After script execution, PyMesh tries to convert properties
+from `PyObject` to the corresponding C/C++ type. Remind, that this process can be a huge performance issue.
 
 ## About Python Object Lifetime
 Keep in mind, that the embedded python interpreter does not reset!!

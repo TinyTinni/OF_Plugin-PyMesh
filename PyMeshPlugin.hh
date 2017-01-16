@@ -119,7 +119,10 @@ private:
     std::vector<int> createdObjects_;
 
     void initPython();
+    /// Run Python Script. Does not update any object. save to call from another thread
     void runPyScript_internal(const QString& _script, bool _clearPrevious);
+    /// Does not update all objects, save to call from another thread
+    void convertPropsPyToCpp_internal(const IdList& _list);
 
 private Q_SLOTS:
 
