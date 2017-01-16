@@ -1,19 +1,16 @@
 #include "PyMeshPlugin.hh"
 
+#include <algorithm>
 
-// todo: some switch for boost static build or not
 #include <boost/python.hpp>
 
 #include <OpenFlipper/BasePlugin/PluginFunctions.hh>
 #include <OpenFlipper/common/GlobalOptions.hh>
 
-// adds openmesh python module for inter language communication
-//#include <OpenMesh/src/Python/Bindings.cc>
-#include "OMPyModule.hh"
-
-#include "MeshFactory.hh"
-
 #include <QFileDialog>
+
+#include "OMPyModule.hh"
+#include "MeshFactory.hh"
 
 static const char* g_job_id = "PyMesh Interpreter";
 
@@ -90,8 +87,9 @@ bool createAndCopyProperty(MeshT* mesh, OpenMesh::PropertyT<boost::python::objec
     // copy
     auto& omProp = mesh->property(omHandle).data_vector();
     auto& propvec = pyProp->data_vector();
-    for (size_t i = 0; i < propvec.size(); ++i)
-        omProp[i] = boost::python::extract<T>(propvec[i]);
+    omProp.resize(propvec.size());
+    std::transform(propvec.begin(), propvec.end(), omProp.begin(),
+        [](boost::python::object& p) -> T {return boost::python::extract<T>(p); });
 
     // remove old
     mesh->remove_property(pyHandle);
