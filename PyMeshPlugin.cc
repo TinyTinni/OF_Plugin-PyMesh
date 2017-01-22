@@ -288,7 +288,7 @@ void PyMeshPlugin::initPython()
     Py_Initialize();
     PyEval_InitThreads();
 
-    main_module_ = boost::python::object(boost::python::handle<>(PyImport_AddModule("__main__")));
+    main_module_ = boost::python::object(boost::python::import("__main__"));
 
     // redirect python output
     initPyLogger(main_module_.ptr(), this);
@@ -296,7 +296,7 @@ void PyMeshPlugin::initPython()
     // add openmesh module    
     boost::python::object main_namespace = main_module_.attr("__dict__");
 
-    boost::python::object om_module((boost::python::handle<>(PyImport_ImportModule("openmesh"))));
+    boost::python::object om_module(boost::python::import("openmesh"));
     main_namespace["openmesh"] = om_module;
 
     // hook into mesh constructors
@@ -315,6 +315,8 @@ void PyMeshPlugin::canceledJob(QString _job)
 {
     if (!_job.contains(g_job_id))
         return;
+
+    Q_EMIT setJobDescription(g_job_id, "Aborting Python Execution");
 
     PyGILState_STATE state = PyGILState_Ensure();
     Py_AddPendingCall(&quitPython, NULL);

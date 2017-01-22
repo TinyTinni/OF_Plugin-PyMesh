@@ -80,6 +80,7 @@ Q_SIGNALS:
   void log(QString _message);
 
   // Process Interface
+  void setJobDescription(QString _jobId, QString _text);
   void startJob(QString _jobId, QString _description, int _min, int _max, bool _blocking = false);
   void finishJob(QString _jobId);
 
