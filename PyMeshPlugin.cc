@@ -13,6 +13,7 @@
 #include "MeshFactory.hh"
 
 static const char* g_job_id = "PyMesh Interpreter";
+static long g_thread_id;
 
 PyMeshPlugin::PyMeshPlugin():
     main_module_(),
@@ -24,7 +25,11 @@ PyMeshPlugin::PyMeshPlugin():
 
 PyMeshPlugin::~PyMeshPlugin()
 {
-    Py_Finalize();
+    PyGILState_Ensure();//lock GIL for cleanup
+    PyErr_Clear();
+    //from boost doc: 
+    //"Note that at this time you must not call Py_Finalize() to stop the interpreter. This may be fixed in a future version of boost.python."
+    //Py_Finalize(); 
 }
 
 void PyMeshPlugin::initializePlugin()
@@ -206,7 +211,7 @@ void PyMeshPlugin::runPyScriptAsync(const QString& _script, bool _clearPrevious)
 {
     initPython();
     OpenFlipperThread* th = new OpenFlipperThread(g_job_id);
-    connect(th, SIGNAL(finished()), this, SLOT(runPyScriptFinished()));
+    connect(th, &OpenFlipperThread::finished, this, &PyMeshPlugin::runPyScriptFinished);
 
     connect(th, &OpenFlipperThread::function, this, [_script, _clearPrevious, this]()
     {
@@ -216,7 +221,8 @@ void PyMeshPlugin::runPyScriptAsync(const QString& _script, bool _clearPrevious)
     , Qt::DirectConnection);
     // Run Script
 
-    emit startJob(QString(g_job_id), "Runs Python Script", 0, 0, true);
+    Q_EMIT startJob(QString(g_job_id), "Runs Python Script", 0, 0, true);
+
     th->start();
     th->startProcessing();
 }
@@ -238,11 +244,24 @@ void PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
             Q_EMIT deleteObject(createdObjects_[i]);
     createdObjects_.clear();
 
-    QString jobName = name() + " PyRun Worker";
-    OpenFlipperThread* th = new OpenFlipperThread(jobName);
-    connect(th, SIGNAL(finished()), this, SLOT(runPyScriptFinished()));
+    PyGILState_STATE state = PyGILState_Ensure();
+    PyThreadState* tstate = PyGILState_GetThisThreadState();
+    g_thread_id = tstate->thread_id;
 
-    PyRun_SimpleString(_script.toLatin1());
+    PyObject* globalDictionary = PyModule_GetDict(main_module_.ptr());
+    PyObject* localDictionary = PyDict_New();
+    PyObject* result = PyRun_String(_script.toLatin1(), Py_file_input, globalDictionary, localDictionary);
+    if (!result) //result == 0 if exception was thrown
+        if (PyErr_ExceptionMatches(PyExc_SystemExit))
+            PyErr_Clear();  //ignore system exit evaluation, since it will close the whole application
+        else
+            PyErr_Print();
+    else
+        Py_XDECREF(result);
+    Py_XDECREF(localDictionary);
+
+    PyGILState_Release(state);
+
     convertPropsPyToCpp_internal(createdObjects_);
 }
 
@@ -287,6 +306,7 @@ void PyMeshPlugin::initPython()
 
     Py_Initialize();
     PyEval_InitThreads();
+    
 
     main_module_ = boost::python::object(boost::python::import("__main__"));
 
@@ -301,14 +321,8 @@ void PyMeshPlugin::initPython()
 
     // hook into mesh constructors
     registerFactoryMethods(this, om_module);
-    
-}
 
-// Abort functions
-int quitPython(void*)
-{
-    PyErr_SetInterrupt();
-    return -1;
+    PyEval_SaveThread();
 }
 
 void PyMeshPlugin::canceledJob(QString _job)
@@ -319,8 +333,14 @@ void PyMeshPlugin::canceledJob(QString _job)
     Q_EMIT setJobDescription(g_job_id, "Aborting Python Execution");
 
     PyGILState_STATE state = PyGILState_Ensure();
-    Py_AddPendingCall(&quitPython, NULL);
-    PyGILState_Release(state);    
+    PyThreadState_SetAsyncExc((long)g_thread_id, PyExc_SystemExit);
+
+    for (auto& i : createdObjects_)
+        Q_EMIT deleteObject(i);
+    createdObjects_.clear();
+
+    PyGILState_Release(state);
+
 
     Q_EMIT log(LOGINFO, "Python Execution Canceled.");
 }
