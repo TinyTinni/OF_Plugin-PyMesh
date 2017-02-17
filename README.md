@@ -9,6 +9,7 @@ no changes are required to already existing scripts.
 
 ## Requierements
 
+Note: This project uses submodules, you may want to clone with --recursive.
 - [OpenFlipper](https://www.openflipper.org) (version in gitrepo since 28.12.2016, new type system)
 - [OpenMesh](https://www.openmesh.org)* (build with Python Bindings is __not__ required)
 - [Python](https://www.python.org) (tested >= 3.6, builds with 2.7) 
