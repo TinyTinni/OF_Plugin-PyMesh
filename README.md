@@ -45,7 +45,9 @@ Your program can and probably will crash.
 
 ## Project Status
 Project was created and tested on windows.
-Compiles under windows, maybe also under MacOs.
+Compiles under linux with python 2.7 (could not test it yet).
+Since I don't own any MacOS devices, i do not know anything about the status under this platform.
+Also, deployment was not tested (you need pythonXX.dll).
 Please test and give some feedback.
 
 Plugin can change, but I guess the interface (slot, for OF Script and the python binding interface) should be stable.
