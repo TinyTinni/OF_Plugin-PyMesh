@@ -12,6 +12,9 @@
 #include "OMPyModule.hh"
 #include "MeshFactory.hh"
 
+#define TYTI_PYLOGHOOK_USE_BOOST
+#include "PyLogHook/PyLogHook.h"
+
 static const char* g_job_id = "PyMesh Interpreter";
 static long g_thread_id;
 
@@ -311,7 +314,8 @@ void PyMeshPlugin::initPython()
     main_module_ = boost::python::object(boost::python::import("__main__"));
 
     // redirect python output
-    initPyLogger(main_module_.ptr(), this);
+    tyti::pylog::redirect_stderr([this](const char*w) {this->pyError(w); });
+    tyti::pylog::redirect_stdout([this](const char* w) {this->pyOutput(w); });
 
     // add openmesh module    
     boost::python::object main_namespace = main_module_.attr("__dict__");

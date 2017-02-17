@@ -23,14 +23,14 @@
 // !!!!include python related stuff BEFORE QT STUFF!!!!
 // cannot use QT_NO_KEYWORDS, OF Interface Headers dont support it
 // disable python debug build
-#ifdef _DEBUG
-#undef _DEBUG
-#include <Python.h>
-#define _DEBUG
-#else
-#include <Python.h>
-#endif
-#include "PyLogHook/PyLogHook.h"
+//#ifdef _DEBUG
+//#undef _DEBUG
+//#include <Python.h>
+//#define _DEBUG
+//#else
+//#include <Python.h>
+//#endif
+#include <boost/python.hpp>
 
 // !!! Qt Stuff starts here !!!
 #include <QObject>
