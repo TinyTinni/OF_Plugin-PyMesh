@@ -9,12 +9,12 @@ no changes are required to already existing scripts.
 
 ## Requierements
 
-- [OpenFlipper](https://www.openflipper.org)(Qt >= 5.0)
+- [OpenFlipper](https://www.openflipper.org) (28.12.2016, new type system)
 - [OpenMesh](https://www.openmesh.org)* (build with Python Bindings is __not__ required)
 - [Python](https://www.python.org) (tested >= 3.6, builds with 2.7) 
 - [Boost.Python](https://www.boost.org)
 
-*Already included in OpenFLipper
+*Already included in OpenFlipper
 
 
 ## How-To-Use
