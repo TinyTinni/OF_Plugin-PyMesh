@@ -26,8 +26,8 @@ set (_flags ${_flags}
 openflipper_plugin (INSTALLDATA Icons 
 	DEPS PythonLibs Boost #add additional findpacke, so OF can do the error handling
 	CDEFINITIONSADD ${_flags}	
-	ADDSRC "PyLogHook/PyLogHook.h;PyLogHook/PyLogHook.cpp"
 	INCDIRS  ${PYTHON_INCLUDE_DIRS} # give a strong hint about the slightly different name of python include dir/libs
 	LIBRARIES ${PYTHON_LIBRARIES}
+	TYPES TRIANGLEMESH POLYMESH 
 	)
 
