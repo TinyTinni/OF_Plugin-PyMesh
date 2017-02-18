@@ -9,6 +9,7 @@ no changes are required to already existing scripts.
 
 ## Requierements
 
+Note: This project uses submodules, you may want to clone with --recursive.
 - [OpenFlipper](https://www.openflipper.org) (version in gitrepo since 28.12.2016, new type system)
 - [OpenMesh](https://www.openmesh.org)* (build with Python Bindings is __not__ required)
 - [Python](https://www.python.org) (tested >= 3.6, builds with 2.7) 
@@ -63,7 +64,9 @@ Your program can and probably will crash.
 
 ## Project Status
 Project was created and tested on windows.
-Compiles under windows, maybe also under MacOs.
+Compiles under linux with python 2.7 (could not test it yet).
+Since I don't own any MacOS devices, i do not know anything about the status under this platform.
+Also, deployment was not tested (you need pythonXX.dll).
 Please test and give some feedback.
 
 Plugin can change, but I guess the interface (slot, for OF Script and the python binding interface) should be stable.
