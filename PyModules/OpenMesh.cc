@@ -1,4 +1,4 @@
-#include "OMPyModule.hh"
+#include "OpenMesh.hh"
 #include <OpenMesh/src/Python/Bindings.cc>
 
 //fix for msvc 2015 update 3, delete in future

@@ -31,6 +31,10 @@ for vh in mesh.vertices():
 # !!! Don't Forget: normals are not updated automatically !!!
 mesh.update_normals()
 
+# build in openflipper module
+for name, mesh in openflipper.meshes().items():
+    print (name)
+
 print("mesh created.")
 print("This Message and any errors (if exists) are shown in OF log.")
 

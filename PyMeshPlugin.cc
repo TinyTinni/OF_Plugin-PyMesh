@@ -9,7 +9,9 @@
 
 #include <QFileDialog>
 
-#include "OMPyModule.hh"
+#include "PyModules/OpenMesh.hh"
+#include "PyModules/OpenFlipper.hh"
+
 #include "MeshFactory.hh"
 
 #define TYTI_PYLOGHOOK_USE_BOOST
@@ -306,6 +308,7 @@ void PyMeshPlugin::initPython()
         return;
 
     PyImport_AppendInittab("openmesh", openmesh_pyinit_function);
+    PyImport_AppendInittab("openflipper", openflipper_pyinit_function);
 
     Py_Initialize();
     PyEval_InitThreads();
@@ -322,6 +325,9 @@ void PyMeshPlugin::initPython()
 
     boost::python::object om_module(boost::python::import("openmesh"));
     main_namespace["openmesh"] = om_module;
+    boost::python::object of_module(boost::python::import("openflipper"));
+    main_namespace["openfipper"] = of_module;  
+    PyRun_SimpleString("import openflipper");
 
     // hook into mesh constructors
     registerFactoryMethods(this, om_module);

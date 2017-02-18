@@ -29,5 +29,6 @@ openflipper_plugin (INSTALLDATA Icons
 	INCDIRS  ${PYTHON_INCLUDE_DIRS} # give a strong hint about the slightly different name of python include dir/libs
 	LIBRARIES ${PYTHON_LIBRARIES}
 	TYPES TRIANGLEMESH POLYMESH 
+	DIRS "PyModules"
 	)
 

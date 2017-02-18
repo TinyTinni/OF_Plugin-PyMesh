@@ -24,10 +24,22 @@ no changes are required to already existing scripts.
 	4. Press "Run Script"
 	5. See your result in the log window and/or the viewer
 
-An example Python script is included.
+Also, have a look on the [example python script.](./python_example_script.py)
 
 You can also use the Script language included in OpenFlipper, search for
 `PyMesh.runPyScript` or `PyMesh.runPyScriptFile`.
+
+## OpenFlipper Python Module
+Your script has also access to the underlying OpenFlipper module which is automatically
+loaded as a module called "openflipper"
+
+Currently, following functions are supported:
+```python
+openflipper.meshes() # returns a dict with (meshname, mesh) for all meshes
+openflipper.targets() # returns a dict with (meshname, mesh) for all meshes which are tagged as targets
+openflipper.sources() # returns a dict with (meshname, mesh) for all meshes which are tagged as sources
+```
+
 
 ## About Custom Properties
 Custom properties created with python are supported. Remind, that the holding type of these properties
@@ -38,8 +50,15 @@ from `PyObject` to the corresponding C/C++ type. Remind, that this process can b
 Keep in mind, that the embedded python interpreter does not reset!!
 
 OpenFlipper owns the underlying mesh ressources. Therefore, don't 
-access on in OpenFlipper deleted meshes in your Python script, e.g. a python variable references on a
-mesh from a previous run, which was deleted in OpenFlipper.
+access on in OpenFlipper deleted meshes in your Python script, e.g. DON'T
+```python
+mesh = TriMesh()
+...
+# end of the python run
+# delete mesh in OpenFlipper
+# start new python run
+mesh.update_normals() # still exists in the python env
+```
 Your program can and probably will crash.
 
 ## Project Status
