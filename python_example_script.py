@@ -1,6 +1,6 @@
 # from OpenMesh Tutorial
+# http://openmesh.org/Daily-Builds/Doc/a03957.html
 from openmesh import *
-
 
 mesh = TriMesh()
 
@@ -31,7 +31,7 @@ for vh in mesh.vertices():
 # !!! Don't Forget: normals are not updated automatically !!!
 mesh.update_normals()
 
-# build in openflipper module
+# build-in openflipper module
 for name, mesh in openflipper.meshes().items():
     print (name)
 

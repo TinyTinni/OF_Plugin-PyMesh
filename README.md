@@ -2,10 +2,13 @@
 OpenFlipper Plugin which runs any Python script with OpenMesh Python bindings.
 The meshes (poly/tri) created by the script will be displayed in OpenFlipper as normal meshes.
 
-This allows you to write geometry processing algorithms in Python.
+This allows you to write geometry processing algorithms in Python
+and use all the OpenFlipper features for your mesh.
 
-The Plugin does not define an Interface for Python, so
-no changes are required to already existing scripts.
+The Plugin provides an interface to some OpenFlipper functions.
+But they are not necessary for visualizing the mesh.
+Just import your already existing Python Code without any change and
+the mesh(es) will be there.
 
 ## Requierements
 
@@ -17,6 +20,12 @@ Note: This project uses submodules, you may want to clone with --recursive.
 
 *Already included in OpenFlipper
 
+## Building Instructions
+- Place (e.g. via git clone --recursive) the files in a directory called "Plugin-PyMesh" into your OpenFLipper Source dir.
+- Run CMake
+- add Python & Boost Python, if CMake couldnt fin the libs (see [OpenMesh Python Bindings how to do that](http://openmesh.org/Daily-Builds/Doc/a03957.html)
+- you don't have to check the variable "OPENMESH_BUILD_PYTHON_BINDINGS"
+- Build, using your selected toolchain
 
 ## How-To-Use
 	1. Write a Python script with OpenMesh bindings (nothing else required)
@@ -25,7 +34,7 @@ Note: This project uses submodules, you may want to clone with --recursive.
 	4. Press "Run Script"
 	5. See your result in the log window and/or the viewer
 
-Also, have a look on the [example python script.](./python_example_script.py)
+Also, have a look at the [example python script.](./python_example_script.py)
 
 You can also use the Script language included in OpenFlipper, search for
 `PyMesh.runPyScript` or `PyMesh.runPyScriptFile`.
