@@ -1,4 +1,4 @@
-﻿# OpenMesh Python Plugin for OpenFlipper
+# OpenMesh Python Plugin for OpenFlipper
 OpenFlipper Plugin which runs any Python script with OpenMesh Python bindings.
 The meshes (poly/tri) created by the script will be displayed in OpenFlipper as normal meshes.
 
