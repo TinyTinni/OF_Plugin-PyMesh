@@ -265,7 +265,10 @@ void PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
         Py_XDECREF(result);
     Py_XDECREF(localDictionary);
 
-    PyGILState_Release(state);
+    if (toolbox_->cbReset->isChecked())
+        Py_Finalize();
+    else
+        PyGILState_Release(state);
 
     convertPropsPyToCpp_internal(createdObjects_);
 }
@@ -389,6 +392,8 @@ OpenMesh::Python::PolyMesh* PyMeshPlugin::createPolyMesh()
 
     PolyMeshObject* object;
     PluginFunctions::getObject(objectId, object);
+    if (!object)
+        return nullptr;
 
     createdObjects_.push_back(objectId);
 
