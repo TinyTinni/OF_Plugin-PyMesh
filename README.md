@@ -10,7 +10,7 @@ But they are not necessary for visualizing the mesh.
 Just import your already existing Python Code without any change and
 the mesh(es) will be there.
 
-## Requierements
+## Requirements
 
 (Same as OpenMesh Python Bindings + OpenFlipper)
 
@@ -40,6 +40,23 @@ Also, have a look at the [example python script.](./python_example_script.py)
 
 You can also use the Script language included in OpenFlipper, search for
 `PyMesh.runPyScript` or `PyMesh.runPyScriptFile`.
+
+## Execute Python Script from a Plugin
+If you are develope your own OpenFlipper plugin, you can execute Python scripts using the [RPC Plugin Interface](http://openflipper.org/Daily-Builds/Doc/Free/Developer/a14371.html) or using the internal scripting engine.
+THe correspoding functions are the following:
+```cpp
+
+void runPyScriptFile(const QString& _filename, bool _clearPrevious);
+void runPyScriptFileAsync(const QString& _filename, bool _clearPrevious);
+
+void runPyScript(const QString& _script, bool _clearPrevious);
+void runPyScriptAsync(const QString& _script, bool _clearPrevious);
+
+// try to convert all properties from PyObject to the corresponding C++ type
+void convertPropsPyToCpp(const IdList& _list);
+
+```
+
 
 ## OpenFlipper Python Module
 Your script has also access to the underlying OpenFlipper module which is automatically
