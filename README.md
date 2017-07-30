@@ -42,7 +42,7 @@ You can also use the Script language included in OpenFlipper, search for
 `PyMesh.runPyScript` or `PyMesh.runPyScriptFile`.
 
 ## Execute Python Script from a Plugin
-If you are develope your own OpenFlipper plugin, you can execute Python scripts using the [RPC Plugin Interface](http://openflipper.org/Daily-Builds/Doc/Free/Developer/a14371.html) or using the internal scripting engine.
+If you are develope your own OpenFlipper plugin, you can execute Python scripts using the [RPC Plugin Interface](http://openflipper.org/Daily-Builds/Doc/Free/Developer/a14371.html) or using the [internal scripting engine](http://openflipper.org/Daily-Builds/Doc/Free/Developer/a14403.html).
 THe correspoding functions are the following:
 ```cpp
 
