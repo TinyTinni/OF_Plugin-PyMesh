@@ -30,10 +30,13 @@ PyMeshPlugin::PyMeshPlugin():
 
 PyMeshPlugin::~PyMeshPlugin()
 {
-    PyGILState_Ensure();//lock GIL for cleanup
-    PyErr_Clear();
-    //from boost doc: 
-    //"Note that at this time you must not call Py_Finalize() to stop the interpreter. This may be fixed in a future version of boost.python."
+    if (Py_IsInitialized())
+    {
+        PyGILState_Ensure();//lock GIL for cleanup
+        PyErr_Clear();
+    }
+    //from boost doc (http://www.boost.org/doc/libs/1_64_0/libs/python/doc/html/tutorial/tutorial/embedding.html chapter "Getting started"):
+    //"Note that at this time you must not call Py_Finalize() to stop the interpreter. This may be fixed in a future version of boost.python." 
     //Py_Finalize(); 
 }
 
@@ -55,20 +58,23 @@ void PyMeshPlugin::slotSelectFile()
 
 void PyMeshPlugin::pluginsInitialized()
 {
-    toolbox_ = new PyMeshToolbox();
-    Q_EMIT addToolbox("PyMesh", toolbox_, new QIcon(OpenFlipper::Options::iconDirStr() + OpenFlipper::Options::dirSeparator() + "pymesh_python.png"));
+    if (!OpenFlipper::Options::nogui())
+    {
+        toolbox_ = new PyMeshToolbox();
+        Q_EMIT addToolbox("PyMesh", toolbox_, new QIcon(OpenFlipper::Options::iconDirStr() + OpenFlipper::Options::dirSeparator() + "pymesh_python.png"));
 
-    toolbox_->pbRunFile->setIcon(QIcon(OpenFlipper::Options::iconDirStr() + OpenFlipper::Options::dirSeparator() + "arrow-right.png"));
-    toolbox_->pbRunFile->setText("");
-    toolbox_->pbFileSelect->setIcon(QIcon(OpenFlipper::Options::iconDirStr() + OpenFlipper::Options::dirSeparator() + "document-open.png"));
-    toolbox_->pbFileSelect->setText("");
+        toolbox_->pbRunFile->setIcon(QIcon(OpenFlipper::Options::iconDirStr() + OpenFlipper::Options::dirSeparator() + "arrow-right.png"));
+        toolbox_->pbRunFile->setText("");
+        toolbox_->pbFileSelect->setIcon(QIcon(OpenFlipper::Options::iconDirStr() + OpenFlipper::Options::dirSeparator() + "document-open.png"));
+        toolbox_->pbFileSelect->setText("");
 
-    toolbox_->filename->setText(OpenFlipperSettings().value("Plugin-PyMesh/LastOpenedFile", 
-        OpenFlipper::Options::applicationDirStr() + OpenFlipper::Options::dirSeparator()).toString());
+        toolbox_->filename->setText(OpenFlipperSettings().value("Plugin-PyMesh/LastOpenedFile",
+            OpenFlipper::Options::applicationDirStr() + OpenFlipper::Options::dirSeparator()).toString());
 
 
-    connect(toolbox_->pbRunFile, SIGNAL(clicked()), this, SLOT(slotRunScript()));
-    connect(toolbox_->pbFileSelect, SIGNAL(clicked()), this, SLOT(slotSelectFile()));
+        connect(toolbox_->pbRunFile, SIGNAL(clicked()), this, SLOT(slotRunScript()));
+        connect(toolbox_->pbFileSelect, SIGNAL(clicked()), this, SLOT(slotSelectFile()));
+    }
 }
 
 void PyMeshPlugin::slotRunScript()

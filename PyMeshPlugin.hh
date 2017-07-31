@@ -139,6 +139,8 @@ private Q_SLOTS:
 
   void runPyScriptFinished();
 
+  void noguiSupported() {};
+
 public Q_SLOTS:
   QString version(){ return QString("1.0"); }
 };
