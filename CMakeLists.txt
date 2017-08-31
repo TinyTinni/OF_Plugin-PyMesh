@@ -32,4 +32,6 @@ openflipper_plugin (INSTALLDATA Icons
 	DIRS "PyModules"
 	)
 
-target_compile_options(Plugin-PyMesh PUBLIC "/bigobj" )
+if(MSVC)
+	target_compile_options(Plugin-PyMesh PUBLIC "/bigobj" )
+endif()
