@@ -80,8 +80,8 @@ from `PyObject` to the corresponding C/C++ type. Remind, that this process can b
 The Interpreter resets after each run.
 Uncheck the option if you don't want any reset.
 
-## Project Status
-Project was created and tested on windows.
+## Project Build Status
+Project was created and tested on windows with VS2015 and VS2017 using Python 3.6.
 Compiles under linux with python 2.7 (could not test it yet).
 Since I don't own any MacOS devices, i do not know anything about the status under this platform.
 Also, deployment was not tested (you need pythonXX.dll).
