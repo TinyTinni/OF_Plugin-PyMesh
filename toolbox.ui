@@ -20,13 +20,13 @@
    <item row="0" column="0">
     <widget class="QCheckBox" name="cbClearPrevious">
      <property name="statusTip">
-      <string>Clear all Meshes which were created in the last run.</string>
+      <string>Clear all meshes which were created in the last run.</string>
      </property>
      <property name="whatsThis">
-      <string>Clear all Meshes which were created in the last run.</string>
+      <string>Clear all meshes which were created in the last run.</string>
      </property>
      <property name="text">
-      <string>Clear previous created Meshes</string>
+      <string>Clear previously created meshes</string>
      </property>
      <property name="checked">
       <bool>true</bool>
@@ -38,10 +38,10 @@
      <item>
       <widget class="QPushButton" name="pbFileSelect">
        <property name="statusTip">
-        <string>Select Python Script.</string>
+        <string>Select Python script.</string>
        </property>
        <property name="whatsThis">
-        <string>Select Python Script.</string>
+        <string>Select Python script.</string>
        </property>
        <property name="text">
         <string>File</string>
@@ -51,10 +51,10 @@
      <item>
       <widget class="QPushButton" name="pbRunFile">
        <property name="statusTip">
-        <string>Execute Python Script.</string>
+        <string>Execute Python script.</string>
        </property>
        <property name="whatsThis">
-        <string>Execute Python Script.</string>
+        <string>Execute Python script.</string>
        </property>
        <property name="text">
         <string>RunFile</string>
@@ -79,10 +79,10 @@
    <item row="2" column="0">
     <widget class="QLineEdit" name="filename">
      <property name="statusTip">
-      <string>Path to Python Script.</string>
+      <string>Path to Python script.</string>
      </property>
      <property name="whatsThis">
-      <string>Path to Python Script.</string>
+      <string>Path to Python script.</string>
      </property>
     </widget>
    </item>
@@ -92,13 +92,13 @@
       <bool>false</bool>
      </property>
      <property name="statusTip">
-      <string>&lt;i&gt;Not Implemented yet. &lt;/i&gt; Resets the Python Interpreter. &lt;b&gt;Caution: &lt;/b&gt; Some extensions may not work properly if their initialization routine is called more than once; this can happen if an application calls Py_Initialize() and Py_Finalize() more than once.</string>
+      <string>&lt;i&gt;Not Implemented yet. &lt;/i&gt; Resets the Python interpreter. &lt;b&gt;Caution: &lt;/b&gt; Some extensions may not work properly if their initialization routine is called more than once; this can happen if an application calls Py_Initialize() and Py_Finalize() more than once.</string>
      </property>
      <property name="whatsThis">
-      <string>&lt;i&gt;Not Implemented yet. &lt;/i&gt; Resets the Python Interpreter. &lt;b&gt;Caution: &lt;/b&gt; Some extensions may not work properly if their initialization routine is called more than once; this can happen if an application calls Py_Initialize() and Py_Finalize() more than once.</string>
+      <string>&lt;i&gt;Not Implemented yet. &lt;/i&gt; Resets the Python interpreter. &lt;b&gt;Caution: &lt;/b&gt; Some extensions may not work properly if their initialization routine is called more than once; this can happen if an application calls Py_Initialize() and Py_Finalize() more than once.</string>
      </property>
      <property name="text">
-      <string>Reset Interpreter after Execution</string>
+      <string>Reset interpreter after execution</string>
      </property>
      <property name="checked">
       <bool>false</bool>

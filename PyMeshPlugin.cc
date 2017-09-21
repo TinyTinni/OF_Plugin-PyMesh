@@ -293,7 +293,7 @@ void PyMeshPlugin::runPyScriptFinished()
 
 void PyMeshPlugin::convertPropsPyToCpp_internal(const IdList& _list)
 {
-    for (auto& i : _list)
+    for (const auto& i : _list)
     {
         TriMeshObject* triobj;
         if (PluginFunctions::getObject(i, triobj))
@@ -307,8 +307,11 @@ void PyMeshPlugin::convertPropsPyToCpp_internal(const IdList& _list)
 void PyMeshPlugin::convertPropsPyToCpp(const IdList& _list)
 {
     convertPropsPyToCpp_internal(_list);
-    for (auto& i : _list)
+    OpenFlipper::Options::redrawDisabled(true);
+    for (const auto& i : _list)
         Q_EMIT updatedObject(i, UPDATE_ALL);
+    OpenFlipper::Options::redrawDisabled(false);
+
 }
 
 void PyMeshPlugin::initPython()
