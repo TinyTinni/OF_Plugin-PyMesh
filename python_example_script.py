@@ -34,6 +34,10 @@ mesh.update_normals()
 # build-in openflipper module
 for name, mesh in openflipper.meshes().items():
     print (name)
+	
+cube_id = openflipper.rpc_call("primitivesgenerator","addCube")
+cube_mesh = openflipper.get_poly_mesh(cube_id)
+
 
 print("mesh created.")
 print("This Message and any errors (if exists) are shown in OF log.")

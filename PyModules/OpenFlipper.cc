@@ -6,6 +6,8 @@
 #include <ObjectTypes/TriangleMesh/TriangleMesh.hh>
 #include <ACG/Utils/SmartPointer.hh>
 
+#include <OpenFlipper/BasePlugin/RPCWrappers.hh>
+
 namespace py = boost::python;
 
 py::dict create_dict_from_ids(const std::vector<int>& ids)
@@ -53,12 +55,72 @@ py::dict meshes()
     return create_dict_from_ids(ids);
 }
 
+PyObject* rpc_call(const char* plugin_name, const char* function_name, std::vector<QScriptValue> params)
+{
+    
+    QScriptValue ret = RPC::callFunction(plugin_name, function_name, std::move(params));
+    if (ret.isNumber())
+        return PyLong_FromLong(ret.toInt32());
+
+    // in case of no return type could be evaluated
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+PyObject* rpc_call(const char* plugin_name, const char* function_name, const boost::python::dict& py_params/*{ QString:"value",... }*/)
+{
+    std::vector<QScriptValue> q_params;
+    // convert parameters to scriptvalues
+    return rpc_call(plugin_name, function_name, std::move(q_params));
+}
+
+PyObject* rpc_call(const char* plugin_name, const char* function_name)
+{
+    std::vector<QScriptValue> params;
+    return rpc_call(plugin_name, function_name, std::move(params));
+}
+
+template<typename T>
+struct NoDeleter
+{
+    void operator()(T*) {}
+};
+
+ptr::shared_ptr<OpenMesh::Python::TriMesh> getTriMesh(int id)
+{
+    using PythonMesh = OpenMesh::Python::TriMesh;
+    using Mesh = TriMesh;
+    Mesh* mesh = nullptr;
+    PluginFunctions::getMesh(id, mesh);
+    //todo raise exception if not found
+    return std::shared_ptr<PythonMesh>(reinterpret_cast<PythonMesh*>(mesh), NoDeleter<PythonMesh>());
+}
+
+
+ptr::shared_ptr<OpenMesh::Python::PolyMesh> getPolyMesh(int id)
+{
+    using PythonMesh = OpenMesh::Python::PolyMesh;
+    using Mesh = PolyMesh;
+    Mesh* mesh = nullptr;
+    PluginFunctions::getMesh(id, mesh);
+    //todo raise exception if not found
+    return std::shared_ptr<PythonMesh>(reinterpret_cast<PythonMesh*>(mesh), NoDeleter<PythonMesh>());
+}
+
 
 BOOST_PYTHON_MODULE(openflipper)
 {
     py::def("targets", &targets);
     py::def("sources", &sources);
     py::def("meshes", &meshes);
+
+    py::def("get_tri_mesh", &getTriMesh);
+    py::def("get_poly_mesh", &getPolyMesh);
+
+    PyObject* (*rpc_callArgs)(const char*, const char*, const boost::python::dict&) = rpc_call;
+    PyObject* (*rpc_callNoArgs)(const char* , const char* ) = rpc_call;
+    //py::def("rpc_call", rpc_callArgs);
+    py::def("rpc_call", rpc_callNoArgs);
 
     py::register_ptr_to_python< ptr::shared_ptr<OpenMesh::Python::TriMesh> >();
     py::register_ptr_to_python< ptr::shared_ptr<OpenMesh::Python::PolyMesh> >();

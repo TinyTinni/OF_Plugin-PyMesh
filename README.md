@@ -15,7 +15,7 @@ the mesh(es) will be there.
 (Same as OpenMesh Python Bindings + OpenFlipper)
 
 Note: This project uses submodules, you may want to clone with --recursive.
-- [OpenFlipper](https://www.openflipper.org) (version in gitrepo since 28.12.2016, new type system)
+- [OpenFlipper](https://www.openflipper.org) (version in gitrepo)
 - [OpenMesh](https://www.openmesh.org)* (build with Python Bindings is __not__ required)
 - [Python](https://www.python.org) (tested >= 3.6, builds with 2.7) 
 - [Boost.Python](https://www.boost.org)
@@ -64,10 +64,34 @@ loaded as a module called "openflipper"
 
 Currently, following functions are supported:
 ```python
-openflipper.meshes() # returns a dict with (meshname, mesh) for all meshes
-openflipper.targets() # returns a dict with (meshname, mesh) for all meshes which are tagged as targets
-openflipper.sources() # returns a dict with (meshname, mesh) for all meshes which are tagged as sources
+openflipper.meshes() # returns a dict with {meshname: mesh} for all meshes
+openflipper.targets() # returns a dict with {meshname: mesh} for all meshes which are tagged as targets
+openflipper.sources() # returns a dict with {meshname: mesh} for all meshes which are tagged as sources
 ```
+
+### _(experimental functions)_
+
+```python
+openflipper.get_tri_mesh(int id)# returns a mesh from the given OpenFlipper Id 
+openflipper.get_poly_mesh(int id)# returns a mesh from the given OpenFLipper Id
+```
+__note:__ no error handling is implemented at the current state, so make sure the Id exists and points to a correct classified mesh.
+
+### RPC
+Use the following function to communicate through the [RPC Interface](http://openflipper.org/Documentation/latest/a00087.html).
+```python
+openflipper.rpc_call(plugin, functionname)
+```
+For example the following call
+```python
+cube_id = openflipper.rpc_call("primitivesgenerator","addCube")
+```
+creates a cube using the PrimitivesGenerator Plugin.
+Theoretically, you should be able to call every script function which is provided by the internal OpenFLipper Script
+functionality.
+
+__Note__: Currently, every function which does not take any parameters are supported. 
+The type conversion QScriValue <-> PythonType is not implemented yet.
 
 
 ## About Custom Properties
@@ -77,15 +101,11 @@ from `PyObject` to the corresponding C/C++ type. Remind, that this process can b
 
 ## About Python Object Lifetime
 
-The Interpreter resets after each run.
-Uncheck the option if you don't want any reset.
+The Interpreter is does not reset after each run.
+Lifetime of Meshes are owned by OpenFlipper.
 
 ## Project Build Status
-Project was created and tested on windows with VS2015 and VS2017 using Python 3.6.
-Compiles under linux with python 2.7 (could not test it yet).
-Since I don't own any MacOS devices, i do not know anything about the status under this platform.
-Also, deployment was not tested (you need pythonXX.dll).
-Please test and give some feedback.
+Project was created and tested on Windows with VS2015 and VS2017 using Python 3.6.
 
 ## License
 [GPLv3 License](./LICENSE) © Matthias Möller. Made with ♥ in Germany.
