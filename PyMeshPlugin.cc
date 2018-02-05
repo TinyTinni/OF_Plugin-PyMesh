@@ -322,6 +322,7 @@ void PyMeshPlugin::initPython()
     PyImport_AppendInittab("openmesh", openmesh_pyinit_function);
     PyImport_AppendInittab("openflipper", openflipper_pyinit_function);
 
+    Py_SetProgramName(Py_DecodeLocale((*OpenFlipper::Options::argv())[0], NULL));
     Py_Initialize();
     PyEval_InitThreads();
     

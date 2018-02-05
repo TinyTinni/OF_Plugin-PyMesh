@@ -20,16 +20,7 @@
 #ifndef PYMESHPLUGIN_HH
 #define PYMESHPLUGIN_HH
 
-// !!!!include python related stuff BEFORE QT STUFF!!!!
-// cannot use QT_NO_KEYWORDS, OF Interface Headers dont support it
-// disable python debug build
-//#ifdef _DEBUG
-//#undef _DEBUG
-//#include <Python.h>
-//#define _DEBUG
-//#else
-//#include <Python.h>
-//#endif
+#include <boost/python/detail/wrap_python.hpp> //Python.h
 #include <boost/python.hpp>
 
 // !!! Qt Stuff starts here !!!
@@ -41,6 +32,8 @@
 #include <OpenFlipper/BasePlugin/LoadSaveInterface.hh>
 #include <OpenFlipper/BasePlugin/BackupInterface.hh>
 #include <OpenFlipper/BasePlugin/ProcessInterface.hh>
+#include <OpenFlipper/BasePlugin/ScriptInterface.hh>
+#include <OpenFlipper/BasePlugin/RPCInterface.hh>
 
 #include <ObjectTypes/PolyMesh/PolyMesh.hh>
 #include <ObjectTypes/TriangleMesh/TriangleMesh.hh>
@@ -52,7 +45,7 @@
 #include "PyMeshToolbox.hh"
 
 
-class PyMeshPlugin : public QObject, BaseInterface, ToolboxInterface, LoadSaveInterface, LoggingInterface, BackupInterface, ProcessInterface
+class PyMeshPlugin : public QObject, BaseInterface, ToolboxInterface, LoadSaveInterface, LoggingInterface, BackupInterface, ProcessInterface, ScriptInterface, RPCInterface
 {
   Q_OBJECT
   Q_INTERFACES(BaseInterface)
@@ -61,6 +54,8 @@ class PyMeshPlugin : public QObject, BaseInterface, ToolboxInterface, LoadSaveIn
   Q_INTERFACES(LoggingInterface)
   Q_INTERFACES(BackupInterface)
   Q_INTERFACES(ProcessInterface)
+  Q_INTERFACES(ScriptInterface)
+  Q_INTERFACES(RPCInterface)
   Q_PLUGIN_METADATA(IID "org.OpenFlipper.Plugins.Plugin-PyMesh")
 
 Q_SIGNALS:
