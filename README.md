@@ -22,7 +22,7 @@ Note: This project uses submodules, you may want to clone with --recursive.
 
 *Already included in OpenFlipper
 
-## Building Instructions
+## Build Instructions
 - Place (e.g. via git clone --recursive) the files in a directory called "Plugin-PyMesh" into your OpenFLipper Source dir.
 - Run CMake
 - add Python & Boost Python, if CMake couldn't find python or boost, have a look at ["OpenMesh Python Bindings Tutorial"](http://openmesh.org/Daily-Builds/Doc/a03957.html)
@@ -43,7 +43,7 @@ You can also use the Script language included in OpenFlipper, search for
 
 ## Execute Python Script from a Plugin
 If you develop your own OpenFlipper-Plugin, you can execute Python scripts using the [RPC Plugin Interface](http://openflipper.org/Daily-Builds/Doc/Free/Developer/a14371.html) or using the [internal scripting engine](http://openflipper.org/Daily-Builds/Doc/Free/Developer/a14403.html).
-THe correspoding functions are the following:
+The correspoding functions are the following:
 ```cpp
 
 void runPyScriptFile(const QString& _filename, bool _clearPrevious);
