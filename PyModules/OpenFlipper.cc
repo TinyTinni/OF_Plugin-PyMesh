@@ -91,7 +91,9 @@ ptr::shared_ptr<OpenMesh::Python::TriMesh> getTriMesh(int id)
     using PythonMesh = OpenMesh::Python::TriMesh;
     using Mesh = TriMesh;
     Mesh* mesh = nullptr;
-    PluginFunctions::getMesh(id, mesh);
+    const bool ok = PluginFunctions::getMesh(id, mesh);
+    if (!ok)
+        PyErr_SetString(PyExc_ValueError, "Passed Id is not a TriMesh");
     //todo raise exception if not found
     return std::shared_ptr<PythonMesh>(reinterpret_cast<PythonMesh*>(mesh), NoDeleter<PythonMesh>());
 }
@@ -102,7 +104,9 @@ ptr::shared_ptr<OpenMesh::Python::PolyMesh> getPolyMesh(int id)
     using PythonMesh = OpenMesh::Python::PolyMesh;
     using Mesh = PolyMesh;
     Mesh* mesh = nullptr;
-    PluginFunctions::getMesh(id, mesh);
+    const bool ok = PluginFunctions::getMesh(id, mesh);
+    if (!ok)
+        PyErr_SetString(PyExc_ValueError, "Passed Id is not a PolyMesh");
     //todo raise exception if not found
     return std::shared_ptr<PythonMesh>(reinterpret_cast<PythonMesh*>(mesh), NoDeleter<PythonMesh>());
 }

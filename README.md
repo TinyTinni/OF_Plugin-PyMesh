@@ -72,8 +72,12 @@ openflipper.sources() # returns a dict with {meshname: mesh} for all meshes whic
 ### _(experimental functions)_
 
 ```python
-openflipper.get_tri_mesh(int id)# returns a mesh from the given OpenFlipper Id 
-openflipper.get_poly_mesh(int id)# returns a mesh from the given OpenFLipper Id
+# returns a mesh from the given OpenFlipper Id
+# throws ValueError if Id is not a trimesh
+openflipper.get_tri_mesh(int id)
+# returns a mesh from the given OpenFLipper Id
+# throws ValueError if Id is not a polymesh
+openflipper.get_poly_mesh(int id)
 ```
 __note:__ no error handling is implemented at the current state, so make sure the Id exists and points to a correct classified mesh.
 
