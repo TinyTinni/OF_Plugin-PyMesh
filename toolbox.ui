@@ -89,7 +89,7 @@
    <item row="1" column="0">
     <widget class="QCheckBox" name="cbReset">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="statusTip">
       <string>&lt;i&gt;Not Implemented yet. &lt;/i&gt; Resets the Python interpreter. &lt;b&gt;Caution: &lt;/b&gt; Some extensions may not work properly if their initialization routine is called more than once; this can happen if an application calls Py_Initialize() and Py_Finalize() more than once.</string>
@@ -98,7 +98,7 @@
       <string>&lt;i&gt;Not Implemented yet. &lt;/i&gt; Resets the Python interpreter. &lt;b&gt;Caution: &lt;/b&gt; Some extensions may not work properly if their initialization routine is called more than once; this can happen if an application calls Py_Initialize() and Py_Finalize() more than once.</string>
      </property>
      <property name="text">
-      <string>Reset interpreter after execution</string>
+      <string>Reset interpreter before execution</string>
      </property>
      <property name="checked">
       <bool>false</bool>

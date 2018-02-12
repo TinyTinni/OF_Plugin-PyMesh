@@ -55,6 +55,9 @@ void runPyScriptAsync(const QString& _script, bool _clearPrevious);
 // try to convert all properties from PyObject to the corresponding C++ type
 void convertPropsPyToCpp(const IdList& _list);
 
+// resets the interpreter
+void resetInterpreter();
+
 ```
 
 
@@ -105,7 +108,6 @@ from `PyObject` to the corresponding C/C++ type. Remind, that this process can b
 
 ## About Python Object Lifetime
 
-The Interpreter is does not reset after each run.
 Lifetime of Meshes are owned by OpenFlipper.
 
 ## Project Build Status

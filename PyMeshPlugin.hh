@@ -92,6 +92,8 @@ public Q_SLOTS:
 
   void convertPropsPyToCpp(const IdList& _list);
 
+  void resetInterpreter();
+
 public:
 
   // Python callback functions
@@ -110,6 +112,7 @@ public:
 private:
 
     boost::python::object main_module_;
+    PyObject* global_dict_clean_; //clean global dict. used for reset. do not change
 
     PyMeshToolbox* toolbox_;
     std::vector<int> createdObjects_;

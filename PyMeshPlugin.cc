@@ -35,6 +35,7 @@ PyMeshPlugin::~PyMeshPlugin()
         PyGILState_Ensure();//lock GIL for cleanup
         PyErr_Clear();
     }
+    Py_XDECREF(global_dict_clean_);
     //from boost doc (http://www.boost.org/doc/libs/1_64_0/libs/python/doc/html/tutorial/tutorial/embedding.html chapter "Getting started"):
     //"Note that at this time you must not call Py_Finalize() to stop the interpreter. This may be fixed in a future version of boost.python." 
     //Py_Finalize(); 
@@ -81,6 +82,9 @@ void PyMeshPlugin::slotRunScript()
 {
     const QString filename = toolbox_->filename->text();
     OpenFlipperSettings().setValue("Plugin-PyMesh/LastOpenedFile", filename);
+    if (toolbox_->cbReset->isChecked())
+        resetInterpreter();
+
     runPyScriptFileAsync(filename, toolbox_->cbClearPrevious->isChecked());
 }
 
@@ -180,6 +184,7 @@ void convertProps(MeshT* mesh)
         convertProps<OpenMesh::FPropHandleT>(mesh, p);
     props.clear();
 
+    // not yet implemented by openmesh python bindings
     //MProps
     // conversion problems in generic version, write own convert code for mprops
     //for (auto it = mesh->mprops_begin(); it != mesh->mprops_end(); ++it)
@@ -230,8 +235,8 @@ void PyMeshPlugin::runPyScriptAsync(const QString& _script, bool _clearPrevious)
         Q_EMIT this->finishJob(QString(g_job_id));
     }
     , Qt::DirectConnection);
+    
     // Run Script
-
     Q_EMIT startJob(QString(g_job_id), "Runs Python Script", 0, 0, true);
 
     th->start();
@@ -249,7 +254,7 @@ void PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
     // init
     initPython();
 
-    // clear env
+    // clear OpenFlipper env
     if (_clearPrevious)
         for (size_t i = 0; i < createdObjects_.size(); ++i)
             Q_EMIT deleteObject(createdObjects_[i]);
@@ -257,24 +262,34 @@ void PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
 
     PyGILState_STATE state = PyGILState_Ensure();
     PyThreadState* tstate = PyGILState_GetThisThreadState();
-    g_thread_id = tstate->thread_id;
+    g_thread_id = tstate->thread_id;     
 
     PyObject* globalDictionary = PyModule_GetDict(main_module_.ptr());
+
     PyObject* localDictionary = PyDict_New();
     PyObject* result = PyRun_String(_script.toLatin1(), Py_file_input, globalDictionary, localDictionary);
     if (!result) //result == 0 if exception was thrown
+    {
         if (PyErr_ExceptionMatches(PyExc_SystemExit))
             PyErr_Clear();  //ignore system exit evaluation, since it will close the whole application
         else
-            PyErr_Print();
+        {
+            // some strange error
+            // usually, an uncaught exception is caught by the python runtime
+            // and the output is piped to stderr -> OF log
+            PyObject *ptype, *pvalue, *ptraceback;
+            PyErr_Fetch(&ptype, &pvalue, &ptraceback);
+            PyObject* pyErrStr = PyObject_Str(ptype);
+            Q_EMIT log(LOGERR, QString(PyUnicode_AsUTF8(pyErrStr)));
+            Py_DECREF(pyErrStr);
+            PyErr_Restore(ptype, pvalue, ptraceback);
+        }
+    }
     else
         Py_XDECREF(result);
     Py_XDECREF(localDictionary);
 
-    if (toolbox_->cbReset->isChecked())
-        Py_Finalize();
-    else
-        PyGILState_Release(state);
+    PyGILState_Release(state);
 
     convertPropsPyToCpp_internal(createdObjects_);
 }
@@ -314,6 +329,18 @@ void PyMeshPlugin::convertPropsPyToCpp(const IdList& _list)
 
 }
 
+void PyMeshPlugin::resetInterpreter()
+{
+    if (!Py_IsInitialized())
+        return;
+
+    PyGILState_STATE state = PyGILState_Ensure();
+    PyObject* dict = PyModule_GetDict(main_module_.ptr());
+    PyDict_Clear(dict);
+    PyDict_Update(dict, global_dict_clean_);
+    PyGILState_Release(state);
+}
+
 void PyMeshPlugin::initPython()
 {
     if (Py_IsInitialized())
@@ -341,6 +368,8 @@ void PyMeshPlugin::initPython()
     boost::python::object of_module(boost::python::import("openflipper"));
     main_namespace["openfipper"] = of_module;  
     PyRun_SimpleString("import openflipper");
+    global_dict_clean_ = PyDict_Copy(PyModule_GetDict(main_module_.ptr()));
+    
 
     // hook into mesh constructors
     registerFactoryMethods(this, om_module);
