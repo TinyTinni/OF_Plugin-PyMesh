@@ -98,8 +98,10 @@ Theoretically, you should be able to call every script function which is provide
 functionality.
 
 __Note__: Currently, every function which does not take any parameters are supported. 
-The type conversion QScriValue <-> PythonType is not implemented yet.
+The type conversion QScriptValue <-> PythonType is not implemented yet.
 
+__Note__: There is a bug in OpenFlipper Core when calling script functions via RPC Interface using another thread than the main thread.
+[Patch can be found here until it is merged in the offical OpenFlipper Repo.](https://gist.github.com/TinyTinni/149bf49373cdea3209f0c62cda16bb8b)
 
 ## About Custom Properties
 Custom properties created with python are supported. Remind, that the holding type of these properties
