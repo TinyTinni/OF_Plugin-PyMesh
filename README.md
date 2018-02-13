@@ -82,7 +82,6 @@ openflipper.get_tri_mesh(int id)
 # throws ValueError if Id is not a polymesh
 openflipper.get_poly_mesh(int id)
 ```
-__note:__ no error handling is implemented at the current state, so make sure the Id exists and points to a correct classified mesh.
 
 ### RPC
 Use the following function to communicate through the [RPC Interface](http://openflipper.org/Documentation/latest/a00087.html).
