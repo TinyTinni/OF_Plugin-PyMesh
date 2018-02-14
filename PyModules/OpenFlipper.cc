@@ -57,7 +57,6 @@ py::dict meshes()
 
 PyObject* rpc_call(const char* plugin_name, const char* function_name, std::vector<QScriptValue> params)
 {
-    
     QScriptValue ret = RPC::callFunction(plugin_name, function_name, std::move(params));
     if (ret.isNumber())
         return PyLong_FromLong(ret.toInt32());
@@ -67,10 +66,35 @@ PyObject* rpc_call(const char* plugin_name, const char* function_name, std::vect
     return Py_None;
 }
 
-PyObject* rpc_call(const char* plugin_name, const char* function_name, const boost::python::dict& py_params/*{ QString:"value",... }*/)
+PyObject* rpc_call(const char* plugin_name, const char* function_name, const boost::python::list& py_params/*{ QString:"value",... }*/)
 {
     std::vector<QScriptValue> q_params;
     // convert parameters to scriptvalues
+
+    QScriptEngine* engine = RPC::getScriptEngine();
+    for (py::ssize_t i = 0; i < py::len(py_params); i+=2)
+    {
+        std::string type_name = py::extract<std::string>(py_params[i])(); 
+        //todo: error checking
+
+        QScriptValue script_value;
+        if (type_name == "QString")
+            script_value = engine->toScriptValue(QString(py::extract<std::string>(py_params[i + 1])().c_str()));
+        else if (type_name == "int")
+            script_value = engine->toScriptValue(py::extract<int>(py_params[i + 1])());
+        else if (type_name == "uint")
+            script_value = engine->toScriptValue(py::extract<unsigned int>(py_params[i + 1])());
+        else if (type_name == "bool")
+            script_value = engine->toScriptValue(py::extract<bool>(py_params[i + 1])());
+        else if (type_name == "IdList")
+            script_value = engine->toScriptValue(py::extract<IdList>(py_params[i + 1])());
+        else if (type_name == "Vector")
+            script_value = engine->toScriptValue(py::extract<Vector>(py_params[i + 1])());
+        else if (type_name == "Vector4")
+            script_value = engine->toScriptValue(py::extract<Vector4>(py_params[i + 1])());
+
+        q_params.push_back(std::move(script_value));
+    }
     return rpc_call(plugin_name, function_name, std::move(q_params));
 }
 
@@ -121,9 +145,9 @@ BOOST_PYTHON_MODULE(openflipper)
     py::def("get_tri_mesh", &getTriMesh);
     py::def("get_poly_mesh", &getPolyMesh);
 
-    PyObject* (*rpc_callArgs)(const char*, const char*, const boost::python::dict&) = rpc_call;
+    PyObject* (*rpc_callArgs)(const char*, const char*, const boost::python::list&) = rpc_call;
     PyObject* (*rpc_callNoArgs)(const char* , const char* ) = rpc_call;
-    //py::def("rpc_call", rpc_callArgs);
+    py::def("rpc_call", rpc_callArgs);
     py::def("rpc_call", rpc_callNoArgs);
 
     py::register_ptr_to_python< ptr::shared_ptr<OpenMesh::Python::TriMesh> >();
