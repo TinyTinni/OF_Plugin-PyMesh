@@ -110,29 +110,25 @@ struct NoDeleter
     void operator()(T*) {}
 };
 
-ptr::shared_ptr<OpenMesh::Python::TriMesh> getTriMesh(int id)
-{
-    using PythonMesh = OpenMesh::Python::TriMesh;
-    using Mesh = TriMesh;
-    Mesh* mesh = nullptr;
-    const bool ok = PluginFunctions::getMesh(id, mesh);
-    if (!ok)
-        PyErr_SetString(PyExc_ValueError, "Passed Id is not a TriMesh");
-    //todo raise exception if not found
-    return std::shared_ptr<PythonMesh>(reinterpret_cast<PythonMesh*>(mesh), NoDeleter<PythonMesh>());
-}
-
-
-ptr::shared_ptr<OpenMesh::Python::PolyMesh> getPolyMesh(int id)
+py::object getMesh(int id)
 {
     using PythonMesh = OpenMesh::Python::PolyMesh;
     using Mesh = PolyMesh;
-    Mesh* mesh = nullptr;
-    const bool ok = PluginFunctions::getMesh(id, mesh);
-    if (!ok)
-        PyErr_SetString(PyExc_ValueError, "Passed Id is not a PolyMesh");
-    //todo raise exception if not found
-    return std::shared_ptr<PythonMesh>(reinterpret_cast<PythonMesh*>(mesh), NoDeleter<PythonMesh>());
+    Mesh* polymesh = nullptr;
+    const bool ok = PluginFunctions::getMesh(id, polymesh);
+    if (ok)
+        return py::object(std::shared_ptr<PythonMesh>(reinterpret_cast<PythonMesh*>(polymesh), NoDeleter<PythonMesh>()));
+
+    using PythonMesh = OpenMesh::Python::TriMesh;
+    using Mesh = TriMesh;
+    Mesh* trimesh = nullptr;
+    const bool ok = PluginFunctions::getMesh(id, trimesh);
+    if (ok)
+        return py::object(std::shared_ptr<PythonMesh>(reinterpret_cast<PythonMesh*>(trimesh), NoDeleter<PythonMesh>()));
+
+    // error case
+    PyErr_SetString(PyExc_ValueError, "Passed Id is not a PolyMesh");
+    return py::object(py::handle<>(py::borrowed(Py_None)));
 }
 
 
@@ -142,8 +138,7 @@ BOOST_PYTHON_MODULE(openflipper)
     py::def("sources", &sources);
     py::def("meshes", &meshes);
 
-    py::def("get_tri_mesh", &getTriMesh);
-    py::def("get_poly_mesh", &getPolyMesh);
+    py::def("get_mesh", &getMesh);
 
     PyObject* (*rpc_callArgs)(const char*, const char*, const boost::python::list&) = rpc_call;
     PyObject* (*rpc_callNoArgs)(const char* , const char* ) = rpc_call;
