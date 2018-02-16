@@ -119,12 +119,12 @@ py::object getMesh(int id)
     if (ok)
         return py::object(std::shared_ptr<PythonMesh>(reinterpret_cast<PythonMesh*>(polymesh), NoDeleter<PythonMesh>()));
 
-    using PythonMesh = OpenMesh::Python::TriMesh;
-    using Mesh = TriMesh;
-    Mesh* trimesh = nullptr;
+    using PythonTriMesh = OpenMesh::Python::TriMesh;
+    using TriMesh = TriMesh;
+    TriMesh* trimesh = nullptr;
     const bool ok = PluginFunctions::getMesh(id, trimesh);
     if (ok)
-        return py::object(std::shared_ptr<PythonMesh>(reinterpret_cast<PythonMesh*>(trimesh), NoDeleter<PythonMesh>()));
+        return py::object(std::shared_ptr<PythonTriMesh>(reinterpret_cast<PythonTriMesh*>(trimesh), NoDeleter<PythonTriMesh>()));
 
     // error case
     PyErr_SetString(PyExc_ValueError, "Passed Id is not a PolyMesh");
