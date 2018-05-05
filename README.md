@@ -16,7 +16,7 @@ the mesh(es) will be there.
 
 Note: This project uses submodules, you may want to clone with --recursive.
 - [OpenFlipper](https://www.openflipper.org) (version in gitrepo)
-- [OpenMesh](https://www.openmesh.org)* (build with Python Bindings is __not__ required)
+- [OpenMesh](https://www.openmesh.org)* (< version 7.0)
 - [Python](https://www.python.org) (tested >= 3.6, builds with 2.7) 
 - [Boost.Python](https://www.boost.org)
 

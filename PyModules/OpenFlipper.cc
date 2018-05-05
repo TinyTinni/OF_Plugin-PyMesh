@@ -168,6 +168,6 @@ namespace boost
 
 #if (PY_MAJOR_VERSION == 2)
     PyObject* (*openflipper_pyinit_function)(void) = &initopenflipper;//untested
-#elif (PY_MAJOR_VERSION == 3)
+#elif
     PyObject* (*openflipper_pyinit_function)(void) = &PyInit_openflipper;
 #endif
