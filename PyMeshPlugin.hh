@@ -20,10 +20,10 @@
 #ifndef PYMESHPLUGIN_HH
 #define PYMESHPLUGIN_HH
 
-#include <boost/python/detail/wrap_python.hpp> //Python.h
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
+#include <pybind11/embed.h>
+#include <pybind11/pytypes.h>
 
-// !!! Qt Stuff starts here !!!
 #include <QObject>
 
 #include <OpenFlipper/BasePlugin/BaseInterface.hh>
@@ -38,9 +38,8 @@
 #include <ObjectTypes/PolyMesh/PolyMesh.hh>
 #include <ObjectTypes/TriangleMesh/TriangleMesh.hh>
 
-#include <OpenMesh/src/Python/Bindings.hh>
-
 #include <vector>
+
 
 #include "PyMeshToolbox.hh"
 
@@ -99,8 +98,8 @@ public:
   // Python callback functions
   void pyOutput(const char* w);
   void pyError(const char* w);  
-  OpenMesh::Python::TriMesh* createTriMesh();
-  OpenMesh::Python::PolyMesh* createPolyMesh();
+  void* createTriMesh();
+  void* createPolyMesh();
 
 
   PyMeshPlugin();
@@ -111,7 +110,7 @@ public:
 
 private:
 
-    boost::python::object main_module_;
+    pybind11::module main_module_;
     PyObject* global_dict_clean_; //clean global dict. used for reset. do not change
 
     PyMeshToolbox* toolbox_;

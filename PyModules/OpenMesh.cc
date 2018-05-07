@@ -1,42 +1,40 @@
 #include "OpenMesh.hh"
-#include <OpenMesh/src/Python/Bindings.cc>
+#include <OpenMesh/Core/Mesh/Traits.hh>
+#include <memory>
+#include "OpenMesh-Python/src/MeshWrapperT.hh"
 
-#if (_MSC_VER == 1900 && !defined(DECL_BOOST_MISSING_GET_POINTER))
-//workaround for msvc 2015 update 3
-#define DECL_BOOST_MISSING_GET_POINTER(X)\
-namespace boost\
-{\
-    template <>\
-    X const volatile * get_pointer<X const volatile>(X const volatile *c)\
-    {\
-        return c;\
-    }\
-}
+#define OPENMESH_PYTHON_MESHTYPES_HH
+struct MeshTraits : public OpenMesh::DefaultTraits {
+    /** Use double precision points */
+    typedef OpenMesh::Vec3d Point;
 
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::TriMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits>)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::PolyConnectivity)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModAspectRatioT<OpenMesh::PolyMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModRoundnessT<class OpenMesh::TriMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModQuadricT<class OpenMesh::TriMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModProgMeshT<class OpenMesh::TriMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModNormalFlippingT<class OpenMesh::TriMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModNormalDeviationT<class OpenMesh::TriMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModIndependentSetsT<class OpenMesh::TriMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModHausdorffT<class OpenMesh::TriMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModEdgeLengthT<class OpenMesh::TriMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModAspectRatioT<class OpenMesh::TriMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModRoundnessT<class OpenMesh::PolyMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModQuadricT<class OpenMesh::PolyMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModProgMeshT<class OpenMesh::PolyMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModNormalFlippingT<class OpenMesh::PolyMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModNormalDeviationT<class OpenMesh::PolyMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModIndependentSetsT<class OpenMesh::PolyMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModHausdorffT<class OpenMesh::PolyMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-DECL_BOOST_MISSING_GET_POINTER(OpenMesh::Decimater::ModEdgeLengthT<class OpenMesh::PolyMesh_ArrayKernelT<struct OpenMesh::Python::MeshTraits> >)
-#endif
+    /** Use double precision normals */
+    typedef OpenMesh::Vec3d Normal;
+
+    /** Use RGBA colors */
+    typedef OpenMesh::Vec4f Color;
+};
+
+
+using TriMesh = MeshWrapperT<OpenMesh::TriMesh_ArrayKernelT<MeshTraits> >;
+using PolyMesh = MeshWrapperT<OpenMesh::PolyMesh_ArrayKernelT<MeshTraits> >;
+
+template<typename T>
+struct NoDeleter
+{
+    void operator()(T*) {}
+};
+
+template<typename T>
+using HolderType = std::unique_ptr<T, NoDeleter<T>>;
+
+#include "OpenMesh-Python/src/Bindings.cc"
+#include "OpenMesh-Python/src/Miscellaneous.cc"
+#include "OpenMesh-Python/src/InputOutput.cc"
+
 
 #if (PY_MAJOR_VERSION == 2)
-    PyObject* (*openmesh_pyinit_function)(void) = &OpenMesh::Python::initopenmesh;//untested
+    PyObject* (*openmesh_pyinit_function)(void) = &initopenmesh;//untested
 #elif (PY_MAJOR_VERSION == 3)
-    PyObject* (*openmesh_pyinit_function)(void) = &OpenMesh::Python::PyInit_openmesh;
+    PyObject* (*openmesh_pyinit_function)(void) = &PyInit_openmesh;
 #endif
