@@ -57,17 +57,15 @@ public:
 
 	template <class Handle>
 	bool py_has_property(const std::string& _name) {
-		auto& prop_map = py_prop_map(Handle());
-		return prop_map.count(_name);
+        HandleToPropHandle<Handle> dummy;
+        return Mesh::get_property_handle(dummy, _name);
 	}
 
 	template <class Handle>
 	void py_remove_property(const std::string& _name) {
-		auto& prop_map = py_prop_map(Handle());
-		if (prop_map.count(_name) != 0) {
-			Mesh::remove_property(prop_map.at(_name));
-			prop_map.erase(_name);
-		}
+        HandleToPropHandle<Handle> h;
+        Mesh::get_property_handle(h, _name);
+        Mesh::remove_property(h);
 	}
 
 	template <class Handle, class PropHandle>
@@ -212,35 +210,66 @@ private:
 
 	template <class Handle>
 	void py_deepcopy_prop(MeshWrapperT *_copy, py::object _copyfunc, py::dict _memo) {
-		for (const auto& item : py_prop_map(Handle())) {
-			const auto prop = item.second;
+        using PropHandle = HandleToPropHandle<Handle>;
+        const auto enditer = this->end(Handle());
+        for (auto iter = this->begin(Handle()); iter != enditer; ++iter){
+
+            PropHandle prop;
+            if (!this->get_property_handle(prop, (*iter)->name())) 
+                continue; // no python prop, skip it
+            PropHandle copyProp = _copy->py_prop_on_demand<Handle, PropHandle>((*iter)->name());
+
 			for (size_t i = 0; i < py_n_items(Handle()); ++i) {
 				const Handle h(i);
-				_copy->property(prop, h) = _copyfunc(this->property(prop, h), _memo);
+				_copy->property(copyProp, h) = _copyfunc(this->property(prop, h), _memo);
 			}
 		}
 	}
 
 	template <class Handle, class PropHandle>
 	PropHandle py_prop_on_demand(const std::string& _name) {
-		auto& prop_map = py_prop_map(Handle());
-		if (prop_map.count(_name) == 0) {
-			PropHandle prop;
-			Mesh::add_property(prop, _name);
-			prop_map[_name] = prop;
-		}
-		return prop_map.at(_name);
+        PropHandle result;
+        if (!Mesh::get_property_handle(result, _name))
+            Mesh::add_property(result, _name);
+		return result;
 	}
 
-	std::map<std::string, VPropHandle>& py_prop_map(OpenMesh::VertexHandle) { return vprop_map; }
-	std::map<std::string, HPropHandle>& py_prop_map(OpenMesh::HalfedgeHandle) { return hprop_map; }
-	std::map<std::string, EPropHandle>& py_prop_map(OpenMesh::EdgeHandle) { return eprop_map; }
-	std::map<std::string, FPropHandle>& py_prop_map(OpenMesh::FaceHandle) { return fprop_map; }
+    typename Mesh::prop_iterator begin(OpenMesh::VertexHandle) { return this->vprops_begin(); }
+    typename Mesh::prop_iterator end(OpenMesh::VertexHandle) { return this->vprops_end(); }
+    typename Mesh::prop_iterator begin(OpenMesh::HalfedgeHandle) { return this->hprops_begin(); }
+    typename Mesh::prop_iterator end(OpenMesh::HalfedgeHandle) { return this->hprops_end(); }
+    typename Mesh::prop_iterator begin(OpenMesh::EdgeHandle) { return this->eprops_begin(); }
+    typename Mesh::prop_iterator end(OpenMesh::EdgeHandle) { return this->eprops_end(); }
+    typename Mesh::prop_iterator begin(OpenMesh::FaceHandle) { return this->fprops_begin(); }
+    typename Mesh::prop_iterator end(OpenMesh::FaceHandle) { return this->fprops_end(); }
 
-	std::map<std::string, VPropHandle> vprop_map;
-	std::map<std::string, HPropHandle> hprop_map;
-	std::map<std::string, EPropHandle> eprop_map;
-	std::map<std::string, FPropHandle> fprop_map;
+    template<typename Handle, typename Dummy>
+    struct HandleToPropHandle_D
+    {};
+
+    template<typename Dummy>
+    struct HandleToPropHandle_D<OpenMesh::VertexHandle, Dummy>
+    {
+        using type = VPropHandle;
+    };
+    template<typename Dummy>
+    struct HandleToPropHandle_D<OpenMesh::HalfedgeHandle, Dummy>
+    {
+        using type = HPropHandle;
+    };
+    template<typename Dummy>
+    struct HandleToPropHandle_D<OpenMesh::EdgeHandle, Dummy>
+    {
+        using type = EPropHandle;
+    };
+    template<typename Dummy>
+    struct HandleToPropHandle_D<OpenMesh::FaceHandle, Dummy>
+    {
+        using type = FPropHandle;
+    };
+    template<typename Handle>
+    using HandleToPropHandle = typename HandleToPropHandle_D<Handle,Handle>::type;
+
 };
 
 
