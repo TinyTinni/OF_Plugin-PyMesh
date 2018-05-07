@@ -6,11 +6,15 @@ add_subdirectory(pybind11)
 ## OpenFlipper Plugin
 openflipper_plugin (INSTALLDATA Icons 
 	TYPES TRIANGLEMESH POLYMESH 
-	DIRS "PyModules"
+	DIRS "PyModules" 
+	#INCDIRS "OpenMesh-Python/src/"
 	)
 	
-target_link_libraries(Plugin-PyMesh pybind11::module pybind11::embed)
+	
+if(TARGET Plugin-PyMesh)	
+	target_link_libraries(Plugin-PyMesh pybind11::module pybind11::embed)
 
-if(MSVC)
-	target_compile_options(Plugin-PyMesh PUBLIC "/bigobj" )
+	if(MSVC)
+		target_compile_options(Plugin-PyMesh PUBLIC "/bigobj" )
+	endif()
 endif()

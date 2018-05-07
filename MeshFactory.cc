@@ -1,45 +1,77 @@
 #include "MeshFactory.hh"
+#include <pybind11/pybind11.h>
+#include <pybind11/embed.h>
 
-#include "PyMeshPlugin.hh"
+#include <memory>
+#include <utility>
 
-#include <ACG/Utils/SmartPointer.hh>
+#include "OpenMesh-Python/src/MeshTypes.hh"
 
-PyMeshPlugin* g_plugin = 0;
+static std::function<void* ()> requestTriMesh = nullptr;
+static std::function<void* ()> requestPolyMesh = nullptr;
 
-template<typename T>
+namespace py = pybind11;
+
+template<typename Mesh>
 struct NoDeleter
 {
-    void operator()(T*){}
+	void operator()(Mesh*){}
 };
 
-
-ptr::shared_ptr<OpenMesh::Python::TriMesh> createTriMesh()
+TriMesh* createTriMesh()
 {
-    typedef OpenMesh::Python::TriMesh Mesh;
-    Mesh* mesh = g_plugin->createTriMesh();
-    return std::shared_ptr<Mesh>(mesh, NoDeleter<Mesh>());
+    return reinterpret_cast<TriMesh*>(requestTriMesh());
 }
 
-
-ptr::shared_ptr<OpenMesh::Python::PolyMesh> createPolyMesh()
+PolyMesh* createPolyMesh()
 {
-    typedef OpenMesh::Python::PolyMesh Mesh;
-    Mesh* mesh = g_plugin->createPolyMesh();
-    return std::shared_ptr<Mesh>(mesh, NoDeleter<Mesh>());
+	return reinterpret_cast<PolyMesh*>(requestPolyMesh());
 }
 
-void registerFactoryMethods(PyMeshPlugin* plugin, boost::python::object& om_module)
+//////////////////////////////////////////
+// Helper function for __init__
+template<typename Mesh, typename... Args>
+std::function<void(py::detail::value_and_holder&, Args...)> create_init_function(Mesh*(*f)(Args...))
 {
-    g_plugin = plugin;
+    return [f](py::detail::value_and_holder& v_h, Args... args)
+    {
+        py::detail::initimpl::construct<py::class_<Mesh>>(v_h,
+            f(std::forward<Args>(args)...), Py_TYPE(v_h.inst) != v_h.type->type);
+    };
+}
 
-    boost::python::object om_namespace = om_module.attr("__dict__");
+template<typename Mesh, typename... Args>
+void set_constructor(py::object& obj, Mesh*(*f)(Args...))
+{
+    auto i = py::cpp_function(create_init_function<Mesh, Args...>(f), py::name("__init__"), py::is_method(obj),
+        py::sibling(py::getattr(obj, "__init__", py::none())), 
+        py::detail::is_new_style_constructor{}, py::return_value_policy::reference);
+    py::setattr(obj, "__init__", std::move(i));
 
-    boost::python::object trimesh_m = om_module.attr("TriMesh");
-    trimesh_m.attr("__init__") = boost::python::make_constructor(createTriMesh);
+}
 
-    boost::python::object polymesh_m = om_module.attr("PolyMesh");
-    polymesh_m.attr("__init__") = boost::python::make_constructor(createPolyMesh);
+//////////////////////////////////////////
 
-    
+void registerFactoryMethods(pybind11::module& _om_module,
+		std::function<void* ()> _create_trimesh,
+		std::function<void* ()> _create_polymesh)
+{
+	requestTriMesh = _create_trimesh;
+	requestPolyMesh = _create_polymesh;
+
+	py::object om_namespace = _om_module.attr("__dict__");
+
+	py::object trimesh_m = _om_module.attr("TriMesh");
+	py::setattr(trimesh_m,"__init__",py::none());//erase all constructors (espacially the overloads overloaded)
+
+	set_constructor<TriMesh>(trimesh_m, &createTriMesh);
+	//set_constructor<TriMesh,int>(trimesh_m, &createTriMesh);
+
+    py::object polymesh_m = _om_module.attr("PolyMesh")
+    py::setattr(polymesh_m, "__init__", py::none());//erase all constructors (espacially the overloads overloaded)
+
+    set_constructor<PolyMesh>(polymesh_m, &createPolyMesh);
+
+
 }
 
