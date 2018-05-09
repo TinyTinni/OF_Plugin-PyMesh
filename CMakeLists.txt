@@ -1,6 +1,8 @@
 include (plugin)
 
-add_subdirectory(pybind11)
+if (NOT TARGET pybind11::module OR NOT TARGET pybind11::embed)
+    add_subdirectory(pybind11)
+endif()
 
 ################################
 ## OpenFlipper Plugin

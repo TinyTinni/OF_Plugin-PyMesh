@@ -10,6 +10,7 @@
 static std::function<void* ()> requestTriMesh = nullptr;
 static std::function<void* ()> requestPolyMesh = nullptr;
 
+
 namespace py = pybind11;
 
 template<typename Mesh>
