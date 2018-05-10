@@ -31,16 +31,13 @@ PyMeshPlugin::PyMeshPlugin():
 
 PyMeshPlugin::~PyMeshPlugin()
 {
-    if (Py_IsInitialized())
-    {
-        PyGILState_Ensure();//lock GIL for cleanup
-        PyErr_Clear();
-    }
-    if (global_dict_clean_)
-        Py_XDECREF(global_dict_clean_);
-    //from boost doc (http://www.boost.org/doc/libs/1_64_0/libs/python/doc/html/tutorial/tutorial/embedding.html chapter "Getting started"):
-    //"Note that at this time you must not call Py_Finalize() to stop the interpreter. This may be fixed in a future version of boost.python." 
-    //Py_Finalize();
+    if (!Py_IsInitialized())
+        return;
+
+    PyGILState_Ensure();//lock GIL for cleanup
+    PyErr_Clear();
+ 
+    Py_XDECREF(global_dict_clean_);
 
     main_module_.dec_ref();
     main_module_.release();
@@ -93,6 +90,9 @@ void PyMeshPlugin::slotRunScript()
         resetInterpreter();
 
     runPyScriptFileAsync(filename, toolbox_->cbClearPrevious->isChecked());
+
+    if (toolbox_->cbConvertProps->isChecked())
+        convertPropsPyToCpp_internal(createdObjects_);
 }
 
 ////////////////////////////////////////////////////////////////
@@ -299,8 +299,6 @@ void PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
     Py_XDECREF(localDictionary);
 
     PyGILState_Release(state);
-
-    convertPropsPyToCpp_internal(createdObjects_);
 }
 
 void PyMeshPlugin::runPyScriptFinished()
