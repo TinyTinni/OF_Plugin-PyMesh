@@ -355,7 +355,7 @@ void PyMeshPlugin::initPython()
         return;
 
     PyImport_AppendInittab("openmesh", openmesh_pyinit_function);
-    //PyImport_AppendInittab("openflipper", openflipper_pyinit_function);
+    PyImport_AppendInittab("openflipper", openflipper_pyinit_function);
 
     Py_SetProgramName(Py_DecodeLocale((*OpenFlipper::Options::argv())[0], NULL));
     py::initialize_interpreter();
@@ -374,9 +374,9 @@ void PyMeshPlugin::initPython()
 
     py::module om_module(py::module::import("openmesh"));
     main_namespace["openmesh"] = om_module;
-    //py::module of_module(py::module::import("openflipper"));
-    //main_namespace["openfipper"] = of_module;
-    //PyRun_SimpleString("import openflipper");
+    py::module of_module(py::module::import("openflipper"));
+    main_namespace["openfipper"] = of_module;
+    PyRun_SimpleString("import openflipper");
     global_dict_clean_ = PyDict_Copy(PyModule_GetDict(main_module_.ptr()));
     
 

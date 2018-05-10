@@ -5,7 +5,7 @@
 #include <memory>
 #include <utility>
 
-#include "OpenMesh-Python/src/MeshTypes.hh"
+#include "PyModules/PyMeshType.hh"
 
 static std::function<void* ()> requestTriMesh = nullptr;
 static std::function<void* ()> requestPolyMesh = nullptr;
@@ -13,20 +13,14 @@ static std::function<void* ()> requestPolyMesh = nullptr;
 
 namespace py = pybind11;
 
-template<typename Mesh>
-struct NoDeleter
+PyTriMesh* createTriMesh()
 {
-	void operator()(Mesh*){}
-};
-
-TriMesh* createTriMesh()
-{
-    return reinterpret_cast<TriMesh*>(requestTriMesh());
+    return reinterpret_cast<PyTriMesh*>(requestTriMesh());
 }
 
-PolyMesh* createPolyMesh()
+PyPolyMesh* createPolyMesh()
 {
-	return reinterpret_cast<PolyMesh*>(requestPolyMesh());
+	return reinterpret_cast<PyPolyMesh*>(requestPolyMesh());
 }
 
 //////////////////////////////////////////
@@ -36,7 +30,7 @@ std::function<void(py::detail::value_and_holder&, Args...)> create_init_function
 {
     return [f](py::detail::value_and_holder& v_h, Args... args)
     {
-        py::detail::initimpl::construct<py::class_<Mesh>>(v_h,
+        py::detail::initimpl::construct<py::class_<Mesh,HolderType<Mesh>>>(v_h,
             f(std::forward<Args>(args)...), Py_TYPE(v_h.inst) != v_h.type->type);
     };
 }
@@ -65,13 +59,13 @@ void registerFactoryMethods(pybind11::module& _om_module,
 	py::object trimesh_m = _om_module.attr("TriMesh");
 	py::setattr(trimesh_m,"__init__",py::none());//erase all constructors (espacially the overloads overloaded)
 
-	set_constructor<TriMesh>(trimesh_m, &createTriMesh);
+	set_constructor<PyTriMesh>(trimesh_m, &createTriMesh);
 	//set_constructor<TriMesh,int>(trimesh_m, &createTriMesh);
 
-    py::object polymesh_m = _om_module.attr("PolyMesh")
+    py::object polymesh_m = _om_module.attr("PolyMesh");
     py::setattr(polymesh_m, "__init__", py::none());//erase all constructors (espacially the overloads overloaded)
 
-    set_constructor<PolyMesh>(polymesh_m, &createPolyMesh);
+    set_constructor<PyPolyMesh>(polymesh_m, &createPolyMesh);
 
 
 }

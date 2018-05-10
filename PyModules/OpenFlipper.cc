@@ -1,9 +1,11 @@
 #include "OpenFlipper.hh"
-#include "OpenMesh-Python/src/MeshTypes.hh"
+#include "PyModules/PyMeshType.hh"
 #include <OpenFlipper/BasePlugin/PluginFunctions.hh>
 #include <ObjectTypes/PolyMesh/PolyMesh.hh>
 #include <ObjectTypes/TriangleMesh/TriangleMesh.hh>
 #include <ACG/Utils/SmartPointer.hh>
+
+#include <pybind11/pybind11.h>
 
 #include <OpenFlipper/BasePlugin/RPCWrappers.hh>
 
@@ -18,15 +20,13 @@ py::dict create_dict_from_ids(const std::vector<int>& ids)
         PolyMeshObject* polyobj;
         if (PluginFunctions::getObject(i, triobj))
         {
-            typedef TriMesh PyMesh;
-            PyMesh* m = reinterpret_cast<PyMesh*>(triobj->mesh());
-            d[triobj->name().toStdString()] = m;//ptr::shared_ptr<PyMesh>(m, [](PyMesh*){});
+            PyTriMesh* m = reinterpret_cast<PyTriMesh*>(triobj->mesh());
+            d[triobj->name().toLatin1()] = py::cast(m);
         }
         else if (PluginFunctions::getObject(i, polyobj))
         {
-            typedef PolyMesh PyMesh;
-            PyMesh* m = reinterpret_cast<PyMesh*>(polyobj->mesh());
-            d[polyobj->name().toStdString()] = m;//ptr::shared_ptr<PyMesh>(m, [](PyMesh*){});
+            PyPolyMesh* m = reinterpret_cast<PyPolyMesh*>(polyobj->mesh());
+            d[polyobj->name().toLatin1()] = py::cast(m);
         }
 
     }
@@ -73,12 +73,12 @@ PyObject* rpc_call(const char* plugin_name, const char* function_name, const py:
     QScriptEngine* engine = RPC::getScriptEngine();
     for (py::ssize_t i = 0; i < py::len(py_params); i+=2)
     {
-        std::string type_name = py::cast<std::string>(py_params[i])();
+        std::string type_name = py::cast<std::string>(py_params[i]);
         //todo: error checking
 
         QScriptValue script_value;
         if (type_name == "QString")
-            script_value = engine->toScriptValue(QString(py::cast<std::string>(py_params[i + 1])));
+            script_value = engine->toScriptValue(QString(py::cast<std::string>(py_params[i + 1]).c_str()));
         else if (type_name == "int")
             script_value = engine->toScriptValue(py::cast<int>(py_params[i + 1]));
         else if (type_name == "uint")
@@ -103,25 +103,15 @@ PyObject* rpc_call(const char* plugin_name, const char* function_name)
     return rpc_call(plugin_name, function_name, std::move(params));
 }
 
-template<typename T>
-struct NoDeleter
-{
-    void operator()(T*) {}
-};
-
 py::object getMesh(int id)
 {
-    using PythonMesh = PolyMesh;
-    using Mesh = PolyMesh;
-    Mesh* polymesh = nullptr;
+    PolyMesh* polymesh = nullptr;
     if (PluginFunctions::getMesh(id, polymesh))
-        return py::object(std::shared_ptr<PythonMesh>(reinterpret_cast<PythonMesh*>(polymesh), NoDeleter<PythonMesh>()));
+        return py::cast(reinterpret_cast<PyPolyMesh*>(polymesh));
 
-    using PythonTriMesh = TriMesh;
-    using TriMesh = TriMesh;
     TriMesh* trimesh = nullptr;
     if (PluginFunctions::getMesh(id, trimesh))
-        return py::object(std::shared_ptr<PythonTriMesh>(reinterpret_cast<PythonTriMesh*>(trimesh), NoDeleter<PythonTriMesh>()));
+        return py::cast(reinterpret_cast<PyTriMesh*>(trimesh));
 
     // error case
     PyErr_SetString(PyExc_ValueError, "Passed Id is not a PolyMesh");
@@ -137,19 +127,15 @@ PYBIND11_MODULE(openflipper, m)
 
     m.def("get_mesh", &getMesh);
 
-    PyObject* (*rpc_callArgs)(const char*, const char*, const py::list&) = rpc_call;
-    PyObject* (*rpc_callNoArgs)(const char* , const char* ) = rpc_call;
-    m.def("rpc_call", rpc_callArgs);
-    m.def("rpc_call", rpc_callNoArgs);
-
-    //py::register_ptr_to_python< ptr::shared_ptr<OpenMesh::Python::TriMesh> >();
-    //py::register_ptr_to_python< ptr::shared_ptr<OpenMesh::Python::PolyMesh> >();
-
+    //PyObject* (*rpc_callArgs)(const char*, const char*, const py::list&) = rpc_call;
+    //PyObject* (*rpc_callNoArgs)(const char* , const char* ) = rpc_call;
+    //m.def("rpc_call", rpc_callArgs);
+    //m.def("rpc_call", rpc_callNoArgs);
 }
 
 
 #if (PY_MAJOR_VERSION == 2)
     PyObject* (*openflipper_pyinit_function)(void) = &initopenflipper;//untested
-#elif
+#else
     PyObject* (*openflipper_pyinit_function)(void) = &PyInit_openflipper;
 #endif

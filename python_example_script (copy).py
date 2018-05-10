@@ -4,7 +4,7 @@ print("Hello")
 # http://openmesh.org/Daily-Builds/Doc/a03957.html
 from openmesh import *
 
-mesh = TriMesh(1)
+mesh = TriMesh()
 print("created1")
 print(type(mesh))
 print(type(TriMesh.__init__))
@@ -42,8 +42,8 @@ print("faces added")
 #mesh.update_normals()
 
 # build-in openflipper module
-#for name, mesh in openflipper.meshes().items():
-#    print (name)
+for name, mesh in openflipper.meshes().items():
+    print (name)
 	
 # experimental function calls over RPC
 #cube_id = openflipper.rpc_call("primitivesgenerator","addCube")
