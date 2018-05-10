@@ -54,18 +54,16 @@ py::dict meshes()
     return create_dict_from_ids(ids);
 }
 
-PyObject* rpc_call(const char* plugin_name, const char* function_name, std::vector<QScriptValue> params)
+py::object rpc_call(const char* plugin_name, const char* function_name, std::vector<QScriptValue> params)
 {
     QScriptValue ret = RPC::callFunction(plugin_name, function_name, std::move(params));
     if (ret.isNumber())
-        return PyLong_FromLong(ret.toInt32());
+        return py::cast(ret.toInt32());
 
-    // in case of no return type could be evaluated
-    Py_INCREF(Py_None);
-    return Py_None;
+    return py::none();
 }
 
-PyObject* rpc_call(const char* plugin_name, const char* function_name, const py::list& py_params/*{ QString:"value",... }*/)
+py::object rpc_call(const char* plugin_name, const char* function_name, const py::list& py_params/*{ QString:"value",... }*/)
 {
     std::vector<QScriptValue> q_params;
     // convert parameters to scriptvalues
@@ -97,7 +95,7 @@ PyObject* rpc_call(const char* plugin_name, const char* function_name, const py:
     return rpc_call(plugin_name, function_name, std::move(q_params));
 }
 
-PyObject* rpc_call(const char* plugin_name, const char* function_name)
+py::object rpc_call(const char* plugin_name, const char* function_name)
 {
     std::vector<QScriptValue> params;
     return rpc_call(plugin_name, function_name, std::move(params));
@@ -127,10 +125,10 @@ PYBIND11_MODULE(openflipper, m)
 
     m.def("get_mesh", &getMesh);
 
-    //PyObject* (*rpc_callArgs)(const char*, const char*, const py::list&) = rpc_call;
-    //PyObject* (*rpc_callNoArgs)(const char* , const char* ) = rpc_call;
-    //m.def("rpc_call", rpc_callArgs);
-    //m.def("rpc_call", rpc_callNoArgs);
+    py::object (*rpc_callArgs)(const char*, const char*, const py::list&) = rpc_call;
+    py::object (*rpc_callNoArgs)(const char* , const char* ) = rpc_call;
+    m.def("rpc_call", rpc_callArgs);
+    m.def("rpc_call", rpc_callNoArgs);
 }
 
 

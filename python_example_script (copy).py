@@ -46,9 +46,9 @@ for name, mesh in openflipper.meshes().items():
     print (name)
 	
 # experimental function calls over RPC
-#cube_id = openflipper.rpc_call("primitivesgenerator","addCube")
-#cube_mesh = openflipper.get_mesh(cube_id)
-#openflipper.rpc_call("core","deleteObject",["int",cube_id])
+cube_id = openflipper.rpc_call("primitivesgenerator","addCube")
+cube_mesh = openflipper.get_mesh(cube_id)
+openflipper.rpc_call("core","deleteObject",["int",cube_id])
 
 
 print("mesh created.")
