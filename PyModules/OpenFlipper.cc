@@ -74,8 +74,8 @@ PyObject* rpc_call(const char* plugin_name, const char* function_name, const py:
     for (py::ssize_t i = 0; i < py::len(py_params); i+=2)
     {
         std::string type_name = py::cast<std::string>(py_params[i]);
-        //todo: error checking
 
+        //PyEerr is called, when a cast is bad
         QScriptValue script_value;
         if (type_name == "QString")
             script_value = engine->toScriptValue(QString(py::cast<std::string>(py_params[i + 1]).c_str()));
@@ -94,6 +94,8 @@ PyObject* rpc_call(const char* plugin_name, const char* function_name, const py:
 
         q_params.push_back(std::move(script_value));
     }
+    if (PyErr_Occurred())
+    	return py::none();
     return rpc_call(plugin_name, function_name, std::move(q_params));
 }
 
