@@ -1,9 +1,12 @@
-[submodule "PyLogHook"]
-	path = PyLogHook
-	url = https://github.com/TinyTinni/PyLogHook.git
-[submodule "pybind11"]
-	path = pybind11
-	url = https://github.com/pybind/pybind11.git
 [submodule "OpenMesh-Python"]
 	path = OpenMesh-Python
 	url = https://www.graphics.rwth-aachen.de:9000/OpenMesh/openmesh-python.git
+	branch = master
+[submodule "pybind11"]
+	path = pybind11
+	url = https://github.com/pybind/pybind11.git
+	branch = master
+[submodule "PyLogHook"]
+	path = PyLogHook
+	url = https://github.com/TinyTinni/PyLogHook.git
+	branch = master

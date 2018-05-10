@@ -9,10 +9,8 @@ This allows you to write geometry processing algorithms in Python
 but also use all the OpenFlipper features.
 
 ## Requirements
-
-(Same as OpenMesh Python Bindings + OpenFlipper)
-
 Note: This project uses submodules, you may want to clone with --recursive.
+
 - [OpenFlipper](https://www.openflipper.org) (version in gitrepo)
 - [Python](https://www.python.org) (tested >= 3.6, builds with 2.7)
 
@@ -35,7 +33,7 @@ Already included as submodules:
 
 Also, have a look at the [example python script.](./python_example_script.py)
 
-You can also use the Script language included in OpenFlipper, search for
+You can also use the script language included in OpenFlipper, search for
 `PyMesh.runPyScript` or `PyMesh.runPyScriptFile`.
 
 ## Execute Python Script from a Plugin
@@ -64,20 +62,27 @@ loaded as a module called "openflipper"
 
 Currently, following functions are supported:
 ```python
-openflipper.meshes() # returns a dict with {meshname: mesh} for all meshes
-openflipper.targets() # returns a dict with {meshname: mesh} for all meshes which are tagged as targets
-openflipper.sources() # returns a dict with {meshname: mesh} for all meshes which are tagged as sources
-```
+Mesh = Union[TriMesh,PolyMesh]
 
-### _(experimental functions)_
+# returns a dict with {meshname: mesh} for all meshes
+openflipper.meshes() : List[str, Mesh]
 
-```python
+# returns a dict with {meshname: mesh} for all meshes which are tagged as targets
+openflipper.targets() :List[str, Mesh]
+
+# returns a dict with {meshname: mesh} for all meshes which are tagged as sources
+openflipper.sources() : List[(str, Mesh]
+ 
 # returns a mesh from the given OpenFlipper Id
 # throws ValueError if Id is not a tri or polymesh
-openflipper.get_mesh(int id)
+openflipper.get_mesh(id : integer)
+
+# returns the openflipper id of the given mesh
+openflipper.get_id(mesh : Mesh)
+
 ```
 
-### RPC
+### RPC (_(experimental)_)
 Use the following function to communicate through the [RPC Interface](http://openflipper.org/Documentation/latest/a00087.html).
 ```python
 openflipper.rpc_call(plugin, functionname)
@@ -87,19 +92,14 @@ For example the following call
 cube_id = openflipper.rpc_call("primitivesgenerator","addCube")
 ```
 creates a cube using the PrimitivesGenerator Plugin.
-Theoretically, you should be able to call every script function which is provided by the internal OpenFLipper Script
+Theoretically, you should be able to call every script function which is provided by the internal OpenFlipper Script
 functionality.
 
-__Note__: Currently, every function which does not take any parameters are supported. 
-The type conversion QScriptValue <-> PythonType is not implemented yet.
-
-__Note__: There is a bug in OpenFlipper Core when calling script functions via RPC Interface using another thread than the main thread.
-[Patch can be found here until it is merged in the offical OpenFlipper Repo.](https://gist.github.com/TinyTinni/149bf49373cdea3209f0c62cda16bb8b)
 
 ## About Custom Properties
-Custom properties created with python are supported. Remind, that the holding type of these properties
-are always `PyObject`. After script execution, PyMesh tries to convert properties
-from `PyObject` to the corresponding C/C++ type. Remind, that this process can be a huge performance issue.
+After script execution, the plugin tries to convert all python properties into c++ properties.
+Currently, only pod types and the vectors by ACG are supported.
+Not supported yet are properties added as numpy array.
 
 ## About Python Object Lifetime
 
