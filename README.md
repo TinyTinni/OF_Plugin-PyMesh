@@ -97,9 +97,9 @@ __Note__: There is a bug in OpenFlipper Core when calling script functions via R
 [Patch can be found here until it is merged in the offical OpenFlipper Repo.](https://gist.github.com/TinyTinni/149bf49373cdea3209f0c62cda16bb8b)
 
 ## About Custom Properties
-Custom properties created with python are supported. Remind, that the holding type of these properties
-are always `PyObject`. After script execution, PyMesh tries to convert properties
-from `PyObject` to the corresponding C/C++ type. Remind, that this process can be a huge performance issue.
+After script execution, the plugin tries to convert all python properties into c++ properties.
+Currently, only pod types and the vectors by ACG are supported.
+Not supported yet are properties added as numpy array.
 
 ## About Python Object Lifetime
 
