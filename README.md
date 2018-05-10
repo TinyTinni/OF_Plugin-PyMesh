@@ -90,11 +90,6 @@ creates a cube using the PrimitivesGenerator Plugin.
 Theoretically, you should be able to call every script function which is provided by the internal OpenFLipper Script
 functionality.
 
-__Note__: Currently, every function which does not take any parameters are supported. 
-The type conversion QScriptValue <-> PythonType is not implemented yet.
-
-__Note__: There is a bug in OpenFlipper Core when calling script functions via RPC Interface using another thread than the main thread.
-[Patch can be found here until it is merged in the offical OpenFlipper Repo.](https://gist.github.com/TinyTinni/149bf49373cdea3209f0c62cda16bb8b)
 
 ## About Custom Properties
 After script execution, the plugin tries to convert all python properties into c++ properties.
