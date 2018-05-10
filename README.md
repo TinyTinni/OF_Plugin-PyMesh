@@ -69,15 +69,13 @@ openflipper.targets() # returns a dict with {meshname: mesh} for all meshes whic
 openflipper.sources() # returns a dict with {meshname: mesh} for all meshes which are tagged as sources
 ```
 
-### _(experimental functions)_
-
 ```python
 # returns a mesh from the given OpenFlipper Id
 # throws ValueError if Id is not a tri or polymesh
 openflipper.get_mesh(int id)
 ```
 
-### RPC
+### RPC (_(experimental)_)
 Use the following function to communicate through the [RPC Interface](http://openflipper.org/Documentation/latest/a00087.html).
 ```python
 openflipper.rpc_call(plugin, functionname)
