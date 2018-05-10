@@ -9,10 +9,8 @@ This allows you to write geometry processing algorithms in Python
 but also use all the OpenFlipper features.
 
 ## Requirements
-
-(Same as OpenMesh Python Bindings + OpenFlipper)
-
 Note: This project uses submodules, you may want to clone with --recursive.
+
 - [OpenFlipper](https://www.openflipper.org) (version in gitrepo)
 - [Python](https://www.python.org) (tested >= 3.6, builds with 2.7)
 
@@ -35,7 +33,7 @@ Already included as submodules:
 
 Also, have a look at the [example python script.](./python_example_script.py)
 
-You can also use the Script language included in OpenFlipper, search for
+You can also use the script language included in OpenFlipper, search for
 `PyMesh.runPyScript` or `PyMesh.runPyScriptFile`.
 
 ## Execute Python Script from a Plugin
@@ -64,15 +62,24 @@ loaded as a module called "openflipper"
 
 Currently, following functions are supported:
 ```python
-openflipper.meshes() # returns a dict with {meshname: mesh} for all meshes
-openflipper.targets() # returns a dict with {meshname: mesh} for all meshes which are tagged as targets
-openflipper.sources() # returns a dict with {meshname: mesh} for all meshes which are tagged as sources
-```
+Mesh = Union[TriMesh,PolyMesh]
 
-```python
+# returns a dict with {meshname: mesh} for all meshes
+openflipper.meshes() : List[str, Mesh]
+
+# returns a dict with {meshname: mesh} for all meshes which are tagged as targets
+openflipper.targets() :List[str, Mesh]
+
+# returns a dict with {meshname: mesh} for all meshes which are tagged as sources
+openflipper.sources() : List[(str, Mesh]
+ 
 # returns a mesh from the given OpenFlipper Id
 # throws ValueError if Id is not a tri or polymesh
-openflipper.get_mesh(int id)
+openflipper.get_mesh(id : integer)
+
+# returns the openflipper id of the given mesh
+openflipper.get_id(mesh : Mesh)
+
 ```
 
 ### RPC (_(experimental)_)
@@ -85,7 +92,7 @@ For example the following call
 cube_id = openflipper.rpc_call("primitivesgenerator","addCube")
 ```
 creates a cube using the PrimitivesGenerator Plugin.
-Theoretically, you should be able to call every script function which is provided by the internal OpenFLipper Script
+Theoretically, you should be able to call every script function which is provided by the internal OpenFlipper Script
 functionality.
 
 

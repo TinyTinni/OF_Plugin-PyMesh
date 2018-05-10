@@ -30,6 +30,9 @@ for vh in mesh.vertices():
 # !!! Don't Forget: normals are not updated automatically !!!
 mesh.update_normals()
 
+mesh_id = openflipper.get_id(mesh)
+print("Mesh ID: {}".format(mesh_id))
+
 # build-in openflipper module
 for name, mesh in openflipper.meshes().items():
     print (name)

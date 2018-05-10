@@ -9,6 +9,8 @@
 
 #include <OpenFlipper/BasePlugin/RPCWrappers.hh>
 
+#include <algorithm>
+
 namespace py = pybind11;
 
 py::dict create_dict_from_ids(const std::vector<int>& ids)
@@ -116,6 +118,23 @@ py::object getMesh(int id)
     return py::none();
 }
 
+template<typename Mesh>
+py::object getID(void* addr)
+{
+    IdList idlist;
+    PluginFunctions::getAllMeshes(idlist);
+    auto iter = std::find_if(std::begin(idlist), std::end(idlist), [&addr](int id)
+    {
+        Mesh* mesh;
+        if (!PluginFunctions::getMesh(id, mesh))
+            return false;
+        return ((void*)mesh == (void*)addr);
+    });
+    if (iter == std::end(idlist))
+        return py::cast(-1); //todo raise exception
+    return py::cast(int(*iter));
+}
+
 
 PYBIND11_MODULE(openflipper, m)
 {
@@ -124,6 +143,8 @@ PYBIND11_MODULE(openflipper, m)
     m.def("meshes", &meshes);
 
     m.def("get_mesh", &getMesh);
+    m.def("get_id", [](PyTriMesh* m) {return getID<TriMesh>(m); });
+    m.def("get_id", [](PyPolyMesh* m) {return getID<PolyMesh>(m); });
 
     py::object (*rpc_callArgs)(const char*, const char*, const py::list&) = rpc_call;
     py::object (*rpc_callNoArgs)(const char* , const char* ) = rpc_call;
