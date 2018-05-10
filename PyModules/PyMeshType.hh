@@ -1,6 +1,7 @@
 #include <OpenMesh/Core/Mesh/Traits.hh>
 #include <memory>
 #include "../OpenMesh-Python/src/MeshWrapperT.hh"
+#include <pybind11/pybind11.h>
 
 #ifndef OPENMESH_PYTHON_MESHTYPES_HH
 #define OPENMESH_PYTHON_MESHTYPES_HH
