@@ -275,26 +275,15 @@ void PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
     PyObject* globalDictionary = PyModule_GetDict(main_module_.ptr());
 
     PyObject* localDictionary = PyDict_New();
-    PyObject* result = PyRun_String(_script.toLatin1(), Py_file_input, globalDictionary, localDictionary);
-    if (!result) //result == 0 if exception was thrown
+    try
     {
-        if (PyErr_ExceptionMatches(PyExc_SystemExit))
-            PyErr_Clear();  //ignore system exit evaluation, since it will close the whole application
-        else
-        {
-            // some strange error
-            // usually, an uncaught exception is caught by the python runtime
-            // and the output is piped to stderr -> OF log
-            PyObject *ptype, *pvalue, *ptraceback;
-            PyErr_Fetch(&ptype, &pvalue, &ptraceback);
-            PyObject* pyErrStr = PyObject_Str(ptype);
-            Q_EMIT log(LOGERR, QString(PyUnicode_AsUTF8(pyErrStr)));
-            Py_DECREF(pyErrStr);
-            PyErr_Restore(ptype, pvalue, ptraceback);
-        }
+        py::exec((const char*)_script.toLatin1(), py::reinterpret_borrow<py::dict>(globalDictionary), py::reinterpret_borrow<py::dict>(localDictionary));
     }
-    else
-        Py_XDECREF(result);
+    catch (py::error_already_set &e)
+    {
+        Q_EMIT log(LOGERR, e.what());
+        e.restore();
+    }
 
     Py_XDECREF(localDictionary);
 
