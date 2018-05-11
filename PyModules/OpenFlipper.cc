@@ -10,8 +10,22 @@
 #include <OpenFlipper/BasePlugin/RPCWrappers.hh>
 
 #include <algorithm>
+#include <functional>
+#include <unordered_map>
 
 namespace py = pybind11;
+
+const std::unordered_map < std::string, std::function<QScriptValue(QScriptEngine* e, const py::object&) >> type_conversion_map =
+{
+    { "QString",[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(QString(py::cast<std::string>(obj).c_str())); } },
+        { "int",[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<int>(obj)); } },
+        { "uint" ,[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<uint>(obj)); } },
+        { "bool" ,[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<bool>(obj)); } },
+        { "IdList" ,[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<IdList>(obj)); } },
+        { "Vector" ,[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<Vector>(obj)); } },
+        { "Vector4" ,[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<Vector4>(obj)); } }
+};
+
 
 py::dict create_dict_from_ids(const std::vector<int>& ids)
 {
@@ -74,25 +88,13 @@ py::object rpc_call(const char* plugin_name, const char* function_name, const py
     for (py::ssize_t i = 0; i < py::len(py_params); i+=2)
     {
         std::string type_name = py::cast<std::string>(py_params[i]);
-        //todo: error checking
 
-        QScriptValue script_value;
-        if (type_name == "QString")
-            script_value = engine->toScriptValue(QString(py::cast<std::string>(py_params[i + 1]).c_str()));
-        else if (type_name == "int")
-            script_value = engine->toScriptValue(py::cast<int>(py_params[i + 1]));
-        else if (type_name == "uint")
-            script_value = engine->toScriptValue(py::cast<unsigned int>(py_params[i + 1]));
-        else if (type_name == "bool")
-            script_value = engine->toScriptValue(py::cast<bool>(py_params[i + 1]));
-        else if (type_name == "IdList")
-            script_value = engine->toScriptValue(py::cast<IdList>(py_params[i + 1]));
-        else if (type_name == "Vector")
-            script_value = engine->toScriptValue(py::cast<Vector>(py_params[i + 1]));
-        else if (type_name == "Vector4")
-            script_value = engine->toScriptValue(py::cast<Vector4>(py_params[i + 1]));
+        auto it = type_conversion_map.find(type_name);
+        if (it == std::end(type_conversion_map)) //todo: raise exception
+            return py::none();
+        auto cast_f = it->second;
 
-        q_params.push_back(std::move(script_value));
+        q_params.push_back(cast_f(engine, py_params[i+1]));
     }
     return rpc_call(plugin_name, function_name, std::move(q_params));
 }
