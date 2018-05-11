@@ -95,6 +95,12 @@ creates a cube using the PrimitivesGenerator Plugin.
 Theoretically, you should be able to call every script function which is provided by the internal OpenFlipper Script
 functionality.
 
+Call using parameters (currently, needs the type encoded. dict pattern [type, variable_name, type, variable_name, ...])
+No all types are support (espacially all Qt type except QString and UpdateType)
+```python
+cube_id = openflipper.rpc_call(core","deleteObject",["int",cube_id])
+```
+
 
 ## About Custom Properties
 After script execution, the plugin tries to convert all python properties into c++ properties.
