@@ -91,11 +91,17 @@ py::object rpc_call(const char* plugin_name, const char* function_name, const py
 
         auto it = type_conversion_map.find(type_name);
         if (it == std::end(type_conversion_map)) //todo: raise exception
+        {
+            const QString err = QString("In function %1, parameter #%2 is can not be converted to %3.").arg(QString(function_name), QString::number(i / 2), QString(type_name.c_str()));
+            PyErr_SetString(PyExc_ValueError, err.toLatin1());
             return py::none();
+        }
         auto cast_f = it->second;
 
         q_params.push_back(cast_f(engine, py_params[i+1]));
     }
+    if (PyErr_Occurred())
+    	return py::none();
     return rpc_call(plugin_name, function_name, std::move(q_params));
 }
 
