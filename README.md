@@ -100,7 +100,7 @@ No all types are support (especially all Qt type except QString)
 ```python
 cube_id = openflipper.rpc_call(core","deleteObject",["int",cube_id])
 ```
-Currently Supported types:
+Currently supported types:
 - QString
 - int
 - uint
@@ -108,7 +108,7 @@ Currently Supported types:
 - IdList
 - Vector
 - Vector4
-- UpdateType (for constants e.g. UPDATE_ALL use openflipper.UPDATE.ALL)
+- UpdateType (for constants e.g. UPDATE_ALL use openflipper.Update.ALL)
 
 
 ## About Custom Properties
