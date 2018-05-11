@@ -39,6 +39,7 @@ for name, mesh in openflipper.meshes().items():
 	
 # experimental function calls over RPC
 cube_id = openflipper.rpc_call("primitivesgenerator","addCube")
+openflipper.rpc_call("backup","createBackup",["int",cube_id, "QString","testing_backup","UpdateType", openflipper.Update.GEOMETRY | openflipper.Update.TOPOLOGY])
 cube_mesh = openflipper.get_mesh(cube_id)
 openflipper.rpc_call("core","deleteObject",["int",cube_id])
 

@@ -6,8 +6,10 @@
 #include <ACG/Utils/SmartPointer.hh>
 
 #include <pybind11/pybind11.h>
+#include <pybind11/operators.h>
 
 #include <OpenFlipper/BasePlugin/RPCWrappers.hh>
+#include <OpenFlipper/common/UpdateType.hh>
 
 #include <algorithm>
 #include <functional>
@@ -23,7 +25,8 @@ const std::unordered_map < std::string, std::function<QScriptValue(QScriptEngine
         { "bool" ,[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<bool>(obj)); } },
         { "IdList" ,[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<IdList>(obj)); } },
         { "Vector" ,[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<Vector>(obj)); } },
-        { "Vector4" ,[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<Vector4>(obj)); } }
+        { "Vector4" ,[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<Vector4>(obj)); } },
+        { "UpdateType" ,[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<UpdateType>(obj)); } },
 };
 
 
@@ -158,8 +161,30 @@ PYBIND11_MODULE(openflipper, m)
     py::object (*rpc_callNoArgs)(const char* , const char* ) = rpc_call;
     m.def("rpc_call", rpc_callArgs);
     m.def("rpc_call", rpc_callNoArgs);
-}
 
+    py::class_<UpdateType> update_type(m, "Update");
+    update_type
+        .def(py::init<>())
+        .def(py::init<UpdateType>())
+        .def(py::self | py::self)
+        .def(py::self |= py::self)
+        .def("__contains__", &UpdateType::contains, py::is_operator())
+        .def_property_readonly_static("none", [](py::object) {return UPDATE_NONE;})
+        .def_property_readonly_static("ALL", [](py::object) {return UPDATE_ALL;})
+        .def_property_readonly_static("VISIBILITY", [](py::object) {return UPDATE_VISIBILITY;})
+        .def_property_readonly_static("GEOMETRY", [](py::object) {return UPDATE_GEOMETRY;})
+        .def_property_readonly_static("TOPOLOGY", [](py::object) {return UPDATE_TOPOLOGY;})
+        .def_property_readonly_static("SELECTION", [](py::object) {return UPDATE_SELECTION;})
+        .def_property_readonly_static("SELECTION_VERTICES", [](py::object) {return UPDATE_SELECTION_VERTICES;})
+        .def_property_readonly_static("SELECTION_EDGES", [](py::object) {return UPDATE_SELECTION_EDGES;})
+        .def_property_readonly_static("SELECTION_HALFEDGES", [](py::object) {return UPDATE_SELECTION_HALFEDGES;})
+        .def_property_readonly_static("SELECTION_FACES", [](py::object) {return UPDATE_SELECTION_FACES;})
+        .def_property_readonly_static("SELECTION_KNOTS", [](py::object) {return UPDATE_SELECTION_KNOTS;})
+        .def_property_readonly_static("COLOR", [](py::object) {return UPDATE_COLOR;})
+        .def_property_readonly_static("TEXTURE", [](py::object) {return UPDATE_TEXTURE;})
+        .def_property_readonly_static("STATE", [](py::object) {return UPDATE_STATE;})
+        .def_property_readonly_static("UNUSED", [](py::object) {return UPDATE_UNUSED;;});
+}
 
 #if (PY_MAJOR_VERSION == 2)
     PyObject* (*openflipper_pyinit_function)(void) = &initopenflipper;//untested

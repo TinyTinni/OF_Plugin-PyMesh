@@ -96,10 +96,19 @@ Theoretically, you should be able to call every script function which is provide
 functionality.
 
 Call using parameters (currently, needs the type encoded. dict pattern [type, variable_name, type, variable_name, ...])
-No all types are support (espacially all Qt type except QString and UpdateType)
+No all types are support (especially all Qt type except QString)
 ```python
 cube_id = openflipper.rpc_call(core","deleteObject",["int",cube_id])
 ```
+Currently Supported types:
+- QString
+- int
+- uint
+- bool
+- IdList
+- Vector
+- Vector4
+- UpdateType (for constants e.g. UPDATE_ALL use openflipper.UPDATE.ALL)
 
 
 ## About Custom Properties
