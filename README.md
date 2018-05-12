@@ -73,8 +73,7 @@ openflipper.targets() :List[str, Mesh]
 # returns a dict with {meshname: mesh} for all meshes which are tagged as sources
 openflipper.sources() : List[(str, Mesh]
  
-# returns a mesh from the given OpenFlipper Id
-# throws ValueError if Id is not a tri or polymesh
+# returns a mesh from the given OpenFlipper Id. return None if no mesh with such an id was found
 openflipper.get_mesh(id : integer)
 
 # returns the openflipper id of the given mesh

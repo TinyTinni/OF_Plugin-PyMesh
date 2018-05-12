@@ -19,14 +19,14 @@ namespace py = pybind11;
 
 const std::unordered_map < std::string, std::function<QScriptValue(QScriptEngine* e, const py::object&) >> type_conversion_map =
 {
-    { "QString",[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(QString(py::cast<std::string>(obj).c_str())); } },
-        { "int",[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<int>(obj)); } },
-        { "uint" ,[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<uint>(obj)); } },
-        { "bool" ,[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<bool>(obj)); } },
-        { "IdList" ,[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<IdList>(obj)); } },
-        { "Vector" ,[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<Vector>(obj)); } },
-        { "Vector4" ,[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<Vector4>(obj)); } },
-        { "UpdateType" ,[](QScriptEngine* e, const py::object& obj) {return e->toScriptValue(py::cast<UpdateType>(obj)); } },
+    { "QString",[](QScriptEngine*const e, const py::object& obj) {return e->toScriptValue(QString(py::cast<std::string>(obj).c_str())); } },
+        { "int",[](QScriptEngine*const e, const py::object& obj) {return e->toScriptValue(py::cast<int>(obj)); } },
+        { "uint" ,[](QScriptEngine*const e, const py::object& obj) {return e->toScriptValue(py::cast<uint>(obj)); } },
+        { "bool" ,[](QScriptEngine*const e, const py::object& obj) {return e->toScriptValue(py::cast<bool>(obj)); } },
+        { "IdList" ,[](QScriptEngine*const e, const py::object& obj) {return e->toScriptValue(py::cast<IdList>(obj)); } },
+        { "Vector" ,[](QScriptEngine*const e, const py::object& obj) {return e->toScriptValue(py::cast<Vector>(obj)); } },
+        { "Vector4" ,[](QScriptEngine*const e, const py::object& obj) {return e->toScriptValue(py::cast<Vector4>(obj)); } },
+        { "UpdateType" ,[](QScriptEngine*const e, const py::object& obj) {return e->toScriptValue(py::cast<UpdateType>(obj)); } },
 };
 
 
@@ -39,12 +39,12 @@ py::dict create_dict_from_ids(const std::vector<int>& ids)
         PolyMeshObject* polyobj;
         if (PluginFunctions::getObject(i, triobj))
         {
-            PyTriMesh* m = reinterpret_cast<PyTriMesh*>(triobj->mesh());
+            PyTriMesh*const m = reinterpret_cast<PyTriMesh*>(triobj->mesh());
             d[triobj->name().toLatin1()] = py::cast(m);
         }
         else if (PluginFunctions::getObject(i, polyobj))
         {
-            PyPolyMesh* m = reinterpret_cast<PyPolyMesh*>(polyobj->mesh());
+            PyPolyMesh*const m = reinterpret_cast<PyPolyMesh*>(polyobj->mesh());
             d[polyobj->name().toLatin1()] = py::cast(m);
         }
 
@@ -78,17 +78,21 @@ py::object rpc_call(const char* plugin_name, const char* function_name, std::vec
     QScriptValue ret = RPC::callFunction(plugin_name, function_name, std::move(params));
     if (ret.isNumber())
         return py::cast(ret.toInt32());
+    if (ret.isString())
+        return py::cast(ret.toString().toStdString());
+    if (ret.isBool())
+        return py::cast(ret.toBool());
 
+    //cannot cast to pytype -> return none (no error)
     return py::none();
 }
 
 py::object rpc_call(const char* plugin_name, const char* function_name, const py::list& py_params/*{ QString:"value",... }*/)
 {
     std::vector<QScriptValue> q_params;
+    QScriptEngine* const engine = RPC::getScriptEngine();
     // convert parameters to scriptvalues
-
-    QScriptEngine* engine = RPC::getScriptEngine();
-    for (py::ssize_t i = 0; i < py::len(py_params); i+=2)
+    for (py::ssize_t i = 0; i < py::len(py_params); i += 2)
     {
         std::string type_name = py::cast<std::string>(py_params[i]);
 
@@ -101,10 +105,9 @@ py::object rpc_call(const char* plugin_name, const char* function_name, const py
         }
         auto cast_f = it->second;
 
-        q_params.push_back(cast_f(engine, py_params[i+1]));
+        q_params.push_back(cast_f(engine, py_params[i + 1]));
     }
-    if (PyErr_Occurred())
-    	return py::none();
+
     return rpc_call(plugin_name, function_name, std::move(q_params));
 }
 
@@ -125,7 +128,6 @@ py::object getMesh(int id)
         return py::cast(reinterpret_cast<PyTriMesh*>(trimesh));
 
     // error case
-    PyErr_SetString(PyExc_ValueError, "Passed Id is not a PolyMesh");
     return py::none();
 }
 
@@ -142,7 +144,10 @@ py::object getID(void* addr)
         return ((void*)mesh == (void*)addr);
     });
     if (iter == std::end(idlist))
-        return py::cast(-1); //todo raise exception
+    {
+        PyErr_SetString(PyExc_RuntimeError, "Cannot find given mesh. Arguments correct?");
+        throw py::error_already_set();
+    }
     return py::cast(int(*iter));
 }
 
