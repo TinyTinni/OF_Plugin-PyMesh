@@ -21,11 +21,5 @@ using PyTriMesh = MeshWrapperT<OpenMesh::TriMesh_ArrayKernelT<MeshTraits> >;
 using PyPolyMesh = MeshWrapperT<OpenMesh::PolyMesh_ArrayKernelT<MeshTraits> >;
 
 template<typename T>
-struct NoDeleter
-{
-    void operator()(T*) {}
-};
-
-template<typename T>
-using HolderType = std::unique_ptr<T, NoDeleter<T>>;
+using HolderType = std::unique_ptr<T, pybind11::nodelete >;
 #endif

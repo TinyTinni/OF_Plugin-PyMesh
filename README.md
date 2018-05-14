@@ -120,7 +120,7 @@ Not supported yet are properties added as numpy array.
 Lifetime of Meshes are owned by OpenFlipper.
 
 ## Project Build Status
-Project was created and tested on Windows with VS2015 and VS2017 using Python 3.6.
+Project was created and tested on Windows VS2017 and Linux using GCC7.
 
 ## License
 [GPLv3 License](./LICENSE) © Matthias Möller. Made with ♥ in Germany.
