@@ -209,7 +209,7 @@ void convertProps(MeshT* mesh)
 
 ////////////////////////////////////////////////////////////////
 // Python Interpreter Setup&Run
-void PyMeshPlugin::runPyScriptFile(const QString& _filename, bool _clearPrevious)
+bool PyMeshPlugin::runPyScriptFile(const QString& _filename, bool _clearPrevious)
 {
     QFile f(_filename);
     if (!f.exists())
@@ -217,7 +217,7 @@ void PyMeshPlugin::runPyScriptFile(const QString& _filename, bool _clearPrevious
         Q_EMIT log(LOGERR, QString("Could not find file %1").arg(_filename));
     }
     f.open(QFile::ReadOnly);
-    runPyScript(QTextStream(&f).readAll(), _clearPrevious);
+    return runPyScript(QTextStream(&f).readAll(), _clearPrevious);
 }
 
 void PyMeshPlugin::runPyScriptFileAsync(const QString& _filename, bool _clearPrevious)
@@ -251,13 +251,14 @@ void PyMeshPlugin::runPyScriptAsync(const QString& _script, bool _clearPrevious)
     th->startProcessing();
 }
 
-void PyMeshPlugin::runPyScript(const QString& _script, bool _clearPrevious)
+bool PyMeshPlugin::runPyScript(const QString& _script, bool _clearPrevious)
 {
-    runPyScript_internal(_script, _clearPrevious);
+    const auto b = runPyScript_internal(_script, _clearPrevious);
     runPyScriptFinished();
+    return b;
 }
 
-void PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevious)
+bool PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevious)
 {
     // init
     initPython();
@@ -272,22 +273,20 @@ void PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
     PyThreadState* tstate = PyGILState_GetThisThreadState();
     g_thread_id = tstate->thread_id;     
 
-    PyObject* globalDictionary = PyModule_GetDict(main_module_.ptr());
-
-    PyObject* localDictionary = PyDict_New();
+    auto locals = main_module_.attr("__dict__");
     try
     {
-        py::exec((const char*)_script.toLatin1(), py::reinterpret_borrow<py::dict>(globalDictionary), py::reinterpret_borrow<py::dict>(localDictionary));
+        py::exec((const char*)_script.toLatin1(), py::globals(), locals);
     }
     catch (py::error_already_set &e)
     {
         Q_EMIT log(LOGERR, e.what());
         e.restore();
+        PyGILState_Release(state);
+        return false;
     }
-
-    Py_XDECREF(localDictionary);
-
     PyGILState_Release(state);
+    return true;
 }
 
 void PyMeshPlugin::runPyScriptFinished()
