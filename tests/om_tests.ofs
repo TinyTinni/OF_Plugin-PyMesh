@@ -1,3 +1,7 @@
+// excluded files doc
+// test_trimesh_normal_calculations:
+// 	OpenFlipper requests face normals and this test requires a mesh without face normals, otherwise it fails
+
 python_code="\n\
 import unittest\n\
 import glob\n\
