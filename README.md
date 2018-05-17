@@ -123,7 +123,7 @@ Lifetime of Meshes are owned by OpenFlipper.
 - Python Mesh in OpenFlipper has already face normals after creation, where the Mesh given back by pure OpenMesh-Python has no face normals
 
 ## Project Build Status
-Project was created and tested on Windows with VS2015 and VS2017 using Python 3.6.
+Project was created and tested on Windows VS2017 and Linux using GCC7.
 
 ## License
 [GPLv3 License](./LICENSE) © Matthias Möller. Made with ♥ in Germany.
