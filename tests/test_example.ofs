@@ -1,0 +1,13 @@
+//check if the example in plugin root dir is runnable
+if(pymesh.runPyScriptFile("@CMAKE_CURRENT_SOURCE_DIR@/../python_example_script.py", false) == false)
+{
+    print("Python execution failure")
+    core.exitFailure()
+}
+
+if (datacontrol.dataType(5) != "TriangleMesh")
+{
+    print("TriangleMesh was not created or wrong type")
+    core.exitFailure()
+}
+
