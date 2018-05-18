@@ -109,7 +109,7 @@ public:
   PyMeshPlugin();
   ~PyMeshPlugin();
 
-  QString name(){return QString("PyMeshPlugin");}
+  QString name(){return QString("PyMesh");}
   QString description(){return QString("Run OpenMesh Python Scripts and shows the resulting mesh.");}
 
 private:

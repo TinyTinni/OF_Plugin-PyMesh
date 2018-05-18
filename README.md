@@ -41,10 +41,10 @@ If you develop your a OpenFlipper-Plugin, you can execute Python scripts using t
 The correspoding functions are the following:
 ```cpp
 
-void runPyScriptFile(const QString& _filename, bool _clearPrevious);
+bool runPyScriptFile(const QString& _filename, bool _clearPrevious);
 void runPyScriptFileAsync(const QString& _filename, bool _clearPrevious);
 
-void runPyScript(const QString& _script, bool _clearPrevious);
+bool runPyScript(const QString& _script, bool _clearPrevious);
 void runPyScriptAsync(const QString& _script, bool _clearPrevious);
 
 // try to convert all properties from PyObject to the corresponding C++ type

@@ -19,7 +19,7 @@ test_runner = unittest.TextTestRunner().run(test_suite)\n\
 if test_runner.failures:\n\
     raise  RuntimeError()\n\
 "
-if(pymeshplugin.runPyScript(python_code, false) == false)
+if(pymesh.runPyScript(python_code, false) == false)
 {
 	core.exitFailure()
 }
