@@ -14,7 +14,7 @@ static std::function<void* ()> requestPolyMesh = nullptr;
 namespace py = pybind11;
 
 template<typename T>
-T* createMesh() { static_assert(false, "Not defined"); return nullptr; }
+T* createMesh() {assert(false);return nullptr; }
 
 template<>
 PyTriMesh* createMesh<PyTriMesh>()
