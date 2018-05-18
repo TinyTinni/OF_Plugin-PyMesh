@@ -30,18 +30,19 @@ for vh in mesh.vertices():
 # !!! Don't Forget: normals are not updated automatically !!!
 mesh.update_normals()
 
-mesh_id = openflipper.get_id(mesh)
+# openflipper module is loaded as ofp
+mesh_id = ofp.get_id(mesh)
 print("Mesh ID: {}".format(mesh_id))
 
 # build-in openflipper module
-for name, mesh in openflipper.meshes().items():
+for name, mesh in ofp.meshes().items():
     print (name)
 	
 # experimental function calls over RPC
-cube_id = openflipper.rpc_call("primitivesgenerator","addCube")
-openflipper.rpc_call("backup","createBackup",["int",cube_id, "QString","testing_backup","UpdateType", openflipper.Update.GEOMETRY | openflipper.Update.TOPOLOGY])
-cube_mesh = openflipper.get_mesh(cube_id)
-openflipper.rpc_call("core","deleteObject",["int",cube_id])
+cube_id = ofp.rpc_call("primitivesgenerator","addCube")
+ofp.rpc_call("backup","createBackup",["int",cube_id, "QString","testing_backup","UpdateType", ofp.Update.GEOMETRY | ofp.Update.TOPOLOGY])
+cube_mesh = ofp.get_mesh(cube_id)
+ofp.rpc_call("core","deleteObject",["int",cube_id])
 
 
 print("mesh created.")

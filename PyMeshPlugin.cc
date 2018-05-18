@@ -363,7 +363,7 @@ void PyMeshPlugin::initPython()
     main_namespace["openmesh"] = om_module;
     py::module of_module(py::module::import("openflipper"));
     main_namespace["openfipper"] = of_module;
-    PyRun_SimpleString("import openflipper");
+    PyRun_SimpleString("import openflipper as ofp");
     global_dict_clean_ = PyDict_Copy(PyModule_GetDict(main_module_.ptr()));
     
 

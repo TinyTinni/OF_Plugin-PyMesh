@@ -58,37 +58,37 @@ void resetInterpreter();
 
 ## OpenFlipper Python Module
 Your script has also access to the underlying OpenFlipper module which is automatically
-loaded as a module called "openflipper"
+loaded as a module called "openflipper" into "ofp" namespace (OpenFlipperPython)
 
 Currently, following functions are supported:
 ```python
 Mesh = Union[TriMesh,PolyMesh]
 
 # returns a dict with {meshname: mesh} for all meshes
-openflipper.meshes() : List[str, Mesh]
+ofp.meshes() : List[str, Mesh]
 
 # returns a dict with {meshname: mesh} for all meshes which are tagged as targets
-openflipper.targets() :List[str, Mesh]
+ofp.targets() :List[str, Mesh]
 
 # returns a dict with {meshname: mesh} for all meshes which are tagged as sources
-openflipper.sources() : List[(str, Mesh]
+ofp.sources() : List[(str, Mesh]
  
 # returns a mesh from the given OpenFlipper Id. return None if no mesh with such an id was found
-openflipper.get_mesh(id : integer)
+ofp.get_mesh(id : integer)
 
 # returns the openflipper id of the given mesh
-openflipper.get_id(mesh : Mesh)
+ofp.get_id(mesh : Mesh)
 
 ```
 
 ### RPC (_(experimental)_)
 Use the following function to communicate through the [RPC Interface](http://openflipper.org/Documentation/latest/a00087.html).
 ```python
-openflipper.rpc_call(plugin, functionname)
+ofp.rpc_call(plugin, functionname)
 ```
 For example the following call
 ```python
-cube_id = openflipper.rpc_call("primitivesgenerator","addCube")
+cube_id = ofp.rpc_call("primitivesgenerator","addCube")
 ```
 creates a cube using the PrimitivesGenerator Plugin.
 Theoretically, you should be able to call every script function which is provided by the internal OpenFlipper Script
@@ -97,7 +97,7 @@ functionality.
 Call using parameters (currently, needs the type encoded. dict pattern [type, variable_name, type, variable_name, ...])
 No all types are support (especially all Qt type except QString)
 ```python
-cube_id = openflipper.rpc_call(core","deleteObject",["int",cube_id])
+cube_id = ofp.rpc_call(core","deleteObject",["int",cube_id])
 ```
 Currently supported types:
 - QString
