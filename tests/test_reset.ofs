@@ -3,7 +3,7 @@ if(pymesh.runPyScriptFile("@CMAKE_CURRENT_SOURCE_DIR@/test_reset_pre.py", false)
 {
     core.exitFailure()
 }
-pymeshplugin.resetInterpreter()
+pymesh.resetInterpreter()
 if(pymesh.runPyScriptFile("@CMAKE_CURRENT_SOURCE_DIR@/test_reset_post.py", false) == false)
 {
 	core.exitFailure()
