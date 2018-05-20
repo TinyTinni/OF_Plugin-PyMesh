@@ -41,10 +41,11 @@ public:
     py::object operator()(py::args args) const
     {
         py::list py_params;
+        const auto argsize = args.size();
         auto it = std::find_if(params_vec_.cbegin(), params_vec_.cend(), 
-            [s = args.size()](const auto& p)
+            [argsize](const QStringList& p)
         {
-            return p.size() == s; ; 
+            return p.size() == argsize ;
         });
         if (it == params_vec_.cend())
         {
@@ -253,7 +254,7 @@ PYBIND11_MODULE(openflipper, m)
         }
     }
     g_submodule_collector.clear();
-    g_submodule_collector.swap(decltype(g_submodule_collector){});//shrink to fit, avaiable first in Qt 5.10
+    decltype(g_submodule_collector)().swap(g_submodule_collector);//shrink to fit, avaiable first in Qt 5.10
 
 }
 
@@ -306,7 +307,7 @@ QRegularExpression get_supported_function_regex()
 {
     const QString supportedTypes = QString::fromStdString(
         std::accumulate(std::next(type_conversion_map.begin()), type_conversion_map.end(), type_conversion_map.begin()->first, []
-        (const auto& lhs, const typename auto& rhs)
+        (const std::string& lhs, const decltype(*type_conversion_map.begin())& rhs)
     {return std::string(lhs) + std::string("|") + std::string(rhs.first); }));// results in "int|uint|double|..."
                                                                               
     QRegularExpression re{ QString("(\\w+).(\\w+)\\((%1)?((,(%1))*)\\)").arg(supportedTypes) };
