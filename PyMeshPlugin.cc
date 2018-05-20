@@ -35,7 +35,6 @@ PyMeshPlugin::~PyMeshPlugin()
  
     Py_XDECREF(global_dict_clean_);
 
-    main_module_.dec_ref();
     main_module_.release();
 
     py::finalize_interpreter();
@@ -68,7 +67,7 @@ void PyMeshPlugin::pluginsInitialized()
         toolbox_->pbRunFile->setText("");
         toolbox_->pbFileSelect->setIcon(QIcon(OpenFlipper::Options::iconDirStr() + OpenFlipper::Options::dirSeparator() + "document-open.png"));
         toolbox_->pbFileSelect->setText("");
-        toolbox_->lbPyVersion->setText(QString("Python Version: "PY_VERSION));
+        toolbox_->lbPyVersion->setText(QString("Python Version: " PY_VERSION));
 
         toolbox_->filename->setText(OpenFlipperSettings().value("Plugin-PyMesh/LastOpenedFile",
             OpenFlipper::Options::applicationDirStr() + OpenFlipper::Options::dirSeparator()).toString());
