@@ -1,8 +1,5 @@
-print("Hello")
-
 # from OpenMesh Tutorial
 # http://openmesh.org/Daily-Builds/Doc/a03957.html
-print("OpenFlipper Version {}".format(ofp.version()))
 
 from openmesh import *
 
