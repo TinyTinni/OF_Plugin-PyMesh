@@ -20,11 +20,7 @@ namespace py = pybind11;
 static const char* g_job_id = "PyMesh Interpreter";
 static long g_thread_id;
 
-PyMeshPlugin::PyMeshPlugin():
-    main_module_(),
-    global_dict_clean_(nullptr),
-    toolbox_(),
-    createdObjects_()
+PyMeshPlugin::PyMeshPlugin()
 {
 
 }
@@ -79,7 +75,35 @@ void PyMeshPlugin::pluginsInitialized()
 
         connect(toolbox_->pbRunFile, SIGNAL(clicked()), this, SLOT(slotRunScript()));
         connect(toolbox_->pbFileSelect, SIGNAL(clicked()), this, SLOT(slotSelectFile()));
+        connect(toolbox_->pbShowFunctions, SIGNAL(clicked()), this, SLOT(showScriptingFunctions()));
     }
+}
+
+void PyMeshPlugin::showScriptingFunctions()
+{
+    if (OpenFlipper::Options::nogui())
+        return;
+
+    if (!scriptingFunctionsPresenter_)
+    {
+        //scriptingFunctionsPresenter_ = new QDialog;
+        QListWidget* lw = new QListWidget();
+        QStringList functions;
+
+        const auto re = get_supported_function_regex();
+
+        Q_EMIT getAvailableFunctions(functions);
+        size_t av_function = functions.size();
+        functions = functions.filter(re);
+        size_t used_functions = functions.size();
+        lw->addItems(functions);
+        scriptingFunctionsPresenter_ = lw;
+        //scriptingFunctionsPresenter_->layout()->addWidget(lw);
+        
+    }
+    scriptingFunctionsPresenter_->show();
+    scriptingFunctionsPresenter_->raise();
+    scriptingFunctionsPresenter_->activateWindow();
 }
 
 void PyMeshPlugin::slotRunScript()
@@ -341,8 +365,13 @@ void PyMeshPlugin::initPython()
     if (Py_IsInitialized())
         return;
 
-    PyImport_AppendInittab("openmesh", openmesh_pyinit_function);
-    PyImport_AppendInittab("openflipper", openflipper_pyinit_function);
+    {
+        PyImport_AppendInittab("openmesh", openmesh_pyinit_function);
+        QStringList functions;
+        Q_EMIT getAvailableFunctions(functions);
+        auto ofp_init = openflipper_get_init_function(std::move(functions));
+        PyImport_AppendInittab("openflipper", std::move(ofp_init));
+    }
 
     Py_SetProgramName(Py_DecodeLocale((*OpenFlipper::Options::argv())[0], NULL));
     py::initialize_interpreter();

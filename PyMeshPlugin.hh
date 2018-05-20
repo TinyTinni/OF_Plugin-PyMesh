@@ -115,10 +115,12 @@ public:
 private:
 
     pybind11::module main_module_;
-    PyObject* global_dict_clean_; //clean global dict. used for reset. do not change
+    PyObject* global_dict_clean_ = nullptr; //clean global dict. used for reset. do not change
 
-    PyMeshToolbox* toolbox_;
+    PyMeshToolbox* toolbox_ = nullptr;
     std::vector<int> createdObjects_;
+
+    QWidget* scriptingFunctionsPresenter_ = nullptr;
 
     void initPython();
     /// Run Python Script. Does not update any object. save to call from another thread
@@ -141,6 +143,8 @@ private Q_SLOTS:
   void runPyScriptFinished();
 
   void noguiSupported() {};
+
+  void showScriptingFunctions();
 
 public Q_SLOTS:
   QString version(){ return QString("1.0"); }

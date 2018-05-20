@@ -2,6 +2,8 @@ print("Hello")
 
 # from OpenMesh Tutorial
 # http://openmesh.org/Daily-Builds/Doc/a03957.html
+print("OpenFlipper Version {}".format(ofp.version()))
+
 from openmesh import *
 
 mesh = TriMesh()
@@ -39,10 +41,12 @@ for name, mesh in ofp.meshes().items():
     print (name)
 	
 # experimental function calls over RPC
-cube_id = ofp.rpc_call("primitivesgenerator","addCube")
-ofp.rpc_call("backup","createBackup",["int",cube_id, "QString","testing_backup","UpdateType", ofp.Update.GEOMETRY | ofp.Update.TOPOLOGY])
+cube_id = ofp.primitivesgenerator.addCube()
+# can only be called in gui mode:
+#ofp.backup.createBackup(cube_id, "testing_backup", ofp.Update.GEOMETRY | ofp.Update.TOPOLOGY)
 cube_mesh = ofp.get_mesh(cube_id)
-ofp.rpc_call("core","deleteObject",["int",cube_id])
+
+ofp.core.deleteObject(cube_id)
 
 
 print("mesh created.")

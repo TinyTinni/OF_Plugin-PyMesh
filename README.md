@@ -65,13 +65,13 @@ Currently, following functions are supported:
 Mesh = Union[TriMesh,PolyMesh]
 
 # returns a dict with {meshname: mesh} for all meshes
-ofp.meshes() : List[str, Mesh]
+ofp.meshes() : Dict[str, Mesh]
 
 # returns a dict with {meshname: mesh} for all meshes which are tagged as targets
-ofp.targets() :List[str, Mesh]
+ofp.targets() :Dict[str, Mesh]
 
 # returns a dict with {meshname: mesh} for all meshes which are tagged as sources
-ofp.sources() : List[(str, Mesh]
+ofp.sources() : Dict[str, Mesh]
  
 # returns a mesh from the given OpenFlipper Id. return None if no mesh with such an id was found
 ofp.get_mesh(id : integer)
@@ -81,33 +81,23 @@ ofp.get_id(mesh : Mesh)
 
 ```
 
-### RPC (_(experimental)_)
-Use the following function to communicate through the [RPC Interface](http://openflipper.org/Documentation/latest/a00087.html).
+### OpenFlipper Scripting
+The ofp module also provides a lot of function (~90%) which are provided by the OpenFlipper internal script.
 ```python
-ofp.rpc_call(plugin, functionname)
+ofp.plugin.functionname(args)
 ```
 For example the following call
 ```python
-cube_id = ofp.rpc_call("primitivesgenerator","addCube")
+cube_id = ofp.primitivesgenerator.addCube()
 ```
-creates a cube using the PrimitivesGenerator Plugin.
-Theoretically, you should be able to call every script function which is provided by the internal OpenFlipper Script
-functionality.
+or
 
-Call using parameters (currently, needs the type encoded. dict pattern [type, variable_name, type, variable_name, ...])
-No all types are support (especially all Qt type except QString)
 ```python
-cube_id = ofp.rpc_call(core","deleteObject",["int",cube_id])
+ofp.backup.createBackup(cube_id, "testing_backup", ofp.Update.GEOMETRY | ofp.Update.TOPOLOGY)
+cube_id = ofp.core.deleteObject(cube_id)
 ```
-Currently supported types:
-- QString
-- int
-- uint
-- bool
-- IdList
-- Vector
-- Vector4
-- UpdateType (for constants e.g. UPDATE_ALL use openflipper.Update.ALL)
+
+__Note:__ Not all return types are supported (espacially, the function which return Qt Objects). They are not filtered yet.
 
 
 ## About Custom Properties

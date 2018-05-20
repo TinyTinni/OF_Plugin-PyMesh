@@ -17,6 +17,54 @@
 
 namespace py = pybind11;
 
+py::object rpc_call(const char* plugin_name, const char* function_name, const py::list& py_params/*{ QString:"value",... }*/);
+
+class OFScriptCaller
+{
+    QString module_name_;
+    QString function_name_;
+    QVector<QStringList> params_vec_;
+
+public:
+    OFScriptCaller() {}
+    OFScriptCaller(QString mn, QString fn, QStringList p):
+        module_name_{std::move(mn)},
+        function_name_{std::move(fn)},
+        params_vec_{1, std::move(p)}
+    {}
+
+    void add_overload(QStringList p)
+    {
+        params_vec_.push_back(std::move(p));
+    }
+
+    py::object operator()(py::args args) const
+    {
+        py::list py_params;
+        auto it = std::find_if(params_vec_.cbegin(), params_vec_.cend(), 
+            [s = args.size()](const auto& p)
+        {
+            return p.size() == s; ; 
+        });
+        if (it == params_vec_.cend())
+        {
+            QString error_msg = QString("%1.%2 does not accept %3 arguments.").arg(module_name_, function_name_, QString::number(args.size()));
+            PyErr_SetString(PyExc_RuntimeError, (const char*)error_msg.toLatin1());
+            throw py::error_already_set();
+        }
+
+        const QStringList& params = *it;
+        for (int i = 0; i < params.size(); ++i)
+        {
+            py_params.append((const char*)params[i].toLatin1());
+            py_params.append(args[i]);
+        }
+        return rpc_call((const char*)module_name_.toLatin1(), (const char*)function_name_.toLatin1(), std::move(py_params));
+    }
+};
+
+// parameter types defined for openflipper scrippting, which are supported by python scripting
+// currently, supports 714 functions out of 802 defined in Free branch (~90%)
 const std::unordered_map < std::string, std::function<QScriptValue(QScriptEngine* e, const py::object&) >> type_conversion_map =
 {
     { "QString",[](QScriptEngine*const e, const py::object& obj) {return e->toScriptValue(QString(py::cast<std::string>(obj).c_str())); } },
@@ -28,6 +76,8 @@ const std::unordered_map < std::string, std::function<QScriptValue(QScriptEngine
         { "Vector4" ,[](QScriptEngine*const e, const py::object& obj) {return e->toScriptValue(py::cast<Vector4>(obj)); } },
         { "UpdateType" ,[](QScriptEngine*const e, const py::object& obj) {return e->toScriptValue(py::cast<UpdateType>(obj)); } },
 };
+
+QHash<QString, QHash<QString, OFScriptCaller>> g_submodule_collector;
 
 
 py::dict create_dict_from_ids(const std::vector<int>& ids)
@@ -87,6 +137,7 @@ py::object rpc_call(const char* plugin_name, const char* function_name, std::vec
     return py::none();
 }
 
+//example: ofp.rpc_call("core", "deleteObject", ["int", cube_id])
 py::object rpc_call(const char* plugin_name, const char* function_name, const py::list& py_params/*{ QString:"value",... }*/)
 {
     std::vector<QScriptValue> q_params;
@@ -99,7 +150,7 @@ py::object rpc_call(const char* plugin_name, const char* function_name, const py
         auto it = type_conversion_map.find(type_name);
         if (it == std::end(type_conversion_map)) //todo: raise exception
         {
-            const QString err = QString("In function %1, parameter #%2 is can not be converted to %3.").arg(QString(function_name), QString::number(i / 2), QString(type_name.c_str()));
+            QString err = QString("In function %1, parameter #%2 is can not be converted to %3.").arg(QString(function_name), QString::number(i / 2), QString(type_name.c_str()));
             PyErr_SetString(PyExc_ValueError, err.toLatin1());
             return py::none();
         }
@@ -189,6 +240,21 @@ PYBIND11_MODULE(openflipper, m)
         .def_property_readonly_static("TEXTURE", [](py::object) {return UPDATE_TEXTURE;})
         .def_property_readonly_static("STATE", [](py::object) {return UPDATE_STATE;})
         .def_property_readonly_static("UNUSED", [](py::object) {return UPDATE_UNUSED;;});
+
+    // add openflipper scripting functions
+    for (auto sm_it = g_submodule_collector.cbegin(); sm_it != g_submodule_collector.cend(); ++sm_it)
+    {
+        auto sm = m.def_submodule((const char*)sm_it.key().toLatin1());
+
+        const  auto& sm_fns = sm_it.value();
+        for (auto it = sm_fns.cbegin(); it != sm_fns.cend(); ++it)
+        {
+            sm.def((const char*)it.key().toLatin1(), it.value());
+        }
+    }
+    g_submodule_collector.clear();
+    g_submodule_collector.swap(decltype(g_submodule_collector){});//shrink to fit, avaiable first in Qt 5.10
+
 }
 
 #if (PY_MAJOR_VERSION == 2)
@@ -196,3 +262,54 @@ PYBIND11_MODULE(openflipper, m)
 #else
     PyObject* (*openflipper_pyinit_function)(void) = &PyInit_openflipper;
 #endif
+
+PyObject*(*openflipper_get_init_function(const QStringList& ofs_functions))(void)
+{
+    QRegularExpression re = get_supported_function_regex();
+
+    for (const auto& function : qAsConst(ofs_functions))
+    {
+        auto match = re.match(function);
+        if (!match.hasMatch())
+            continue;
+        // 1: pluginname
+        // 2: functionname
+        // 3+: params
+        QString pn = match.captured(1);
+        if (pn == "pymesh" || pn == "-")
+            continue;
+        QString fn = match.captured(2);
+        QStringList params;
+        auto captured_groups = match.lastCapturedIndex();
+        auto captured_txt = match.capturedTexts();
+        if (match.captured(3) != "")
+            params.append(match.captured(3));
+        if (match.captured(4) != "")
+        {
+            QStringList p = match.captured(4).split(",", QString::SkipEmptyParts);
+            for (auto& str : p)
+                str = str.trimmed();
+            params.append(p);
+        }
+
+        auto it = g_submodule_collector[pn].find(fn);
+        if (it == g_submodule_collector[pn].end())
+            g_submodule_collector[pn][fn] = OFScriptCaller{ pn, fn, params };
+        else
+            g_submodule_collector[pn][fn].add_overload(params);
+    }
+
+    return openflipper_pyinit_function;
+}
+
+QRegularExpression get_supported_function_regex()
+{
+    const QString supportedTypes = QString::fromStdString(
+        std::accumulate(std::next(type_conversion_map.begin()), type_conversion_map.end(), type_conversion_map.begin()->first, []
+        (const auto& lhs, const typename auto& rhs)
+    {return std::string(lhs) + std::string("|") + std::string(rhs.first); }));// results in "int|uint|double|..."
+                                                                              
+    QRegularExpression re{ QString("(\\w+).(\\w+)\\((%1)?((,(%1))*)\\)").arg(supportedTypes) };
+
+    return re;
+}
