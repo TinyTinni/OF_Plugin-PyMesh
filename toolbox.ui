@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>377</width>
+    <width>436</width>
     <height>257</height>
    </rect>
   </property>
@@ -27,7 +27,7 @@
      </property>
     </widget>
    </item>
-   <item row="5" column="0">
+   <item row="6" column="0">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -122,6 +122,13 @@
     <widget class="QPushButton" name="pbShowFunctions">
      <property name="text">
       <string>Show ofp functions</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QLabel" name="lbPyVersion">
+     <property name="text">
+      <string>&lt;Python Version&gt;</string>
      </property>
     </widget>
    </item>

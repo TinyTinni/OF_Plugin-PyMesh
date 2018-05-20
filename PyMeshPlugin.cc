@@ -68,6 +68,7 @@ void PyMeshPlugin::pluginsInitialized()
         toolbox_->pbRunFile->setText("");
         toolbox_->pbFileSelect->setIcon(QIcon(OpenFlipper::Options::iconDirStr() + OpenFlipper::Options::dirSeparator() + "document-open.png"));
         toolbox_->pbFileSelect->setText("");
+        toolbox_->lbPyVersion->setText(QString("Python Version: "PY_VERSION));
 
         toolbox_->filename->setText(OpenFlipperSettings().value("Plugin-PyMesh/LastOpenedFile",
             OpenFlipper::Options::applicationDirStr() + OpenFlipper::Options::dirSeparator()).toString());
