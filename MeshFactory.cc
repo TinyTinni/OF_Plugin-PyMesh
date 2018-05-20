@@ -14,7 +14,7 @@ static std::function<void* ()> requestPolyMesh = nullptr;
 namespace py = pybind11;
 
 template<typename T>
-T* createMesh() {assert(false);return nullptr; }
+T* createMesh() {static_assert(!std::is_same<T,T>::value,"No overloaded Function defined.");return nullptr; }
 
 template<>
 PyTriMesh* createMesh<PyTriMesh>()
