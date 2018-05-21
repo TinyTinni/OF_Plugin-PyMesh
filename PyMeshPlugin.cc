@@ -293,6 +293,9 @@ bool PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
             Q_EMIT deleteObject(createdObjects_[i]);
     createdObjects_.clear();
 
+    IdList previousMeshes;
+    PluginFunctions::getAllObjectIdentifiers(previousMeshes);
+
     PyGILState_STATE state = PyGILState_Ensure();
     PyThreadState* tstate = PyGILState_GetThisThreadState();
     g_thread_id = tstate->thread_id;     
@@ -318,6 +321,17 @@ bool PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
     	return runPyScript_internal(_script, _clearPrevious);
     }
     PyGILState_Release(state);
+
+    IdList allMeshes;
+    PluginFunctions::getAllObjectIdentifiers(allMeshes);
+
+    allMeshes.erase(std::remove_if(allMeshes.begin(), allMeshes.end(), [&previousMeshes](int id)
+    		{
+    			return std::find(previousMeshes.begin(),previousMeshes.end(), id) != previousMeshes.end();
+    		} ), allMeshes.end());
+
+    createdObjects_ = std::move(allMeshes);
+
     return true;
 }
 
@@ -453,8 +467,6 @@ void* PyMeshPlugin::createTriMesh()
     TriMeshObject* object;
     PluginFunctions::getObject(objectId, object);
 
-    createdObjects_.push_back(objectId);
-
     return object->mesh();
 }
 
@@ -468,8 +480,6 @@ void* PyMeshPlugin::createPolyMesh()
     PluginFunctions::getObject(objectId, object);
     if (!object)
         return nullptr;
-
-    createdObjects_.push_back(objectId);
 
     return object->mesh();
 }
