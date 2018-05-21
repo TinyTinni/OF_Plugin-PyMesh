@@ -107,6 +107,9 @@
    </item>
    <item row="4" column="0">
     <widget class="QCheckBox" name="cbConvertProps">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="toolTip">
       <string>Tries to convert all the properties added with python. Can be high CPU intensive.</string>
      </property>
@@ -114,7 +117,7 @@
       <string>Convert Props after execution</string>
      </property>
      <property name="checked">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
     </widget>
    </item>
