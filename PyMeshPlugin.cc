@@ -309,6 +309,14 @@ bool PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
         PyGILState_Release(state);
         return false;
     }
+    catch (const std::runtime_error &e)
+    {
+    	Q_EMIT log(LOGERR, e.what());
+    	Q_EMIT log(LOGWARN, "Restarting Interpreter.");
+    	PyGILState_Release(state);
+    	resetInterpreter();
+    	return runPyScript_internal(_script, _clearPrevious);
+    }
     PyGILState_Release(state);
     return true;
 }
