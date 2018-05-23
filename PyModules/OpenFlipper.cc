@@ -45,7 +45,7 @@ public:
         auto it = std::find_if(params_vec_.cbegin(), params_vec_.cend(), 
             [argsize](const QStringList& p)
         {
-            return p.size() == argsize ;
+            return py::cast(static_cast<size_t>(p.size()) == argsize);
         });
         if (it == params_vec_.cend())
         {
@@ -144,7 +144,7 @@ py::object rpc_call(const char* plugin_name, const char* function_name, const py
     std::vector<QScriptValue> q_params;
     QScriptEngine* const engine = RPC::getScriptEngine();
     // convert parameters to scriptvalues
-    for (py::ssize_t i = 0; i < py::len(py_params); i += 2)
+    for (size_t i = 0; i < py::len(py_params); i += 2)
     {
         std::string type_name = py::cast<std::string>(py_params[i]);
 
