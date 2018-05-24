@@ -45,7 +45,7 @@ public:
         auto it = std::find_if(params_vec_.cbegin(), params_vec_.cend(), 
             [argsize](const QStringList& p)
         {
-            return py::cast(static_cast<size_t>(p.size()) == argsize);
+            return static_cast<size_t>(p.size()) == argsize;
         });
         if (it == params_vec_.cend())
         {

@@ -301,6 +301,9 @@ bool PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
     g_thread_id = tstate->thread_id;     
 
     auto locals = main_module_.attr("__dict__");
+
+    bool result = true;
+
     try
     {
         py::exec((const char*)_script.toLatin1(), py::globals(), locals);
@@ -309,8 +312,7 @@ bool PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
     {
         Q_EMIT log(LOGERR, e.what());
         e.restore();
-        PyGILState_Release(state);
-        return false;
+        result = false;
     }
     catch (const std::runtime_error &e)
     {
@@ -318,7 +320,8 @@ bool PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
     	Q_EMIT log(LOGWARN, "Restarting Interpreter.");
     	PyGILState_Release(state);
     	resetInterpreter();
-    	return runPyScript_internal(_script, _clearPrevious);
+        result = false;
+        state = PyGILState_Ensure();
     }
     PyGILState_Release(state);
 
@@ -332,7 +335,7 @@ bool PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
 
     createdObjects_ = std::move(allMeshes);
 
-    return true;
+    return result;
 }
 
 void PyMeshPlugin::runPyScriptFinished()
