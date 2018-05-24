@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>377</width>
+    <width>436</width>
     <height>257</height>
    </rect>
   </property>
@@ -17,23 +17,49 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QCheckBox" name="cbClearPrevious">
+   <item row="3" column="0">
+    <widget class="QLineEdit" name="filename">
      <property name="statusTip">
-      <string>Clear all meshes which were created in the last run.</string>
+      <string>Path to Python script.</string>
      </property>
      <property name="whatsThis">
-      <string>Clear all meshes which were created in the last run.</string>
+      <string>Path to Python script.</string>
+     </property>
+    </widget>
+   </item>
+   <item row="6" column="0">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="1" column="0">
+    <widget class="QCheckBox" name="cbReset">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="statusTip">
+      <string>&lt;i&gt;Not Implemented yet. &lt;/i&gt; Resets the Python interpreter. &lt;b&gt;Caution: &lt;/b&gt; Some extensions may not work properly if their initialization routine is called more than once; this can happen if an application calls Py_Initialize() and Py_Finalize() more than once.</string>
+     </property>
+     <property name="whatsThis">
+      <string>&lt;i&gt;Not Implemented yet. &lt;/i&gt; Resets the Python interpreter. &lt;b&gt;Caution: &lt;/b&gt; Some extensions may not work properly if their initialization routine is called more than once; this can happen if an application calls Py_Initialize() and Py_Finalize() more than once.</string>
      </property>
      <property name="text">
-      <string>Clear previously created meshes</string>
+      <string>Reset interpreter before execution</string>
      </property>
      <property name="checked">
       <bool>true</bool>
      </property>
     </widget>
    </item>
-   <item row="2" column="1">
+   <item row="3" column="1">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
       <widget class="QPushButton" name="pbFileSelect">
@@ -63,45 +89,49 @@
      </item>
     </layout>
    </item>
-   <item row="3" column="0">
-    <spacer name="verticalSpacer">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item row="2" column="0">
-    <widget class="QLineEdit" name="filename">
+   <item row="0" column="0">
+    <widget class="QCheckBox" name="cbClearPrevious">
      <property name="statusTip">
-      <string>Path to Python script.</string>
+      <string>Clear all meshes which were created in the last run.</string>
      </property>
      <property name="whatsThis">
-      <string>Path to Python script.</string>
+      <string>Clear all meshes which were created in the last run.</string>
+     </property>
+     <property name="text">
+      <string>Clear previously created meshes</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QCheckBox" name="cbReset">
+   <item row="4" column="0">
+    <widget class="QCheckBox" name="cbConvertProps">
      <property name="enabled">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
-     <property name="statusTip">
-      <string>&lt;i&gt;Not Implemented yet. &lt;/i&gt; Resets the Python interpreter. &lt;b&gt;Caution: &lt;/b&gt; Some extensions may not work properly if their initialization routine is called more than once; this can happen if an application calls Py_Initialize() and Py_Finalize() more than once.</string>
-     </property>
-     <property name="whatsThis">
-      <string>&lt;i&gt;Not Implemented yet. &lt;/i&gt; Resets the Python interpreter. &lt;b&gt;Caution: &lt;/b&gt; Some extensions may not work properly if their initialization routine is called more than once; this can happen if an application calls Py_Initialize() and Py_Finalize() more than once.</string>
+     <property name="toolTip">
+      <string>Tries to convert all the properties added with python. Can be high CPU intensive.</string>
      </property>
      <property name="text">
-      <string>Reset interpreter before execution</string>
+      <string>Convert Props after execution</string>
      </property>
      <property name="checked">
       <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QPushButton" name="pbShowFunctions">
+     <property name="text">
+      <string>Show ofp functions</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QLabel" name="lbPyVersion">
+     <property name="text">
+      <string>&lt;Python Version&gt;</string>
      </property>
     </widget>
    </item>

@@ -78,15 +78,19 @@ Q_SIGNALS:
   void startJob(QString _jobId, QString _description, int _min, int _max, bool _blocking = false);
   void finishJob(QString _jobId);
 
+  // Script Interface
+  void getAvailableFunctions(QStringList& _functions);
+  void getDescription(QString _function, QString& _description, QStringList& _parameters, QStringList& _descriptions);
+
   // Backup Interface
   void createBackup(int _objectid, QString _name, UpdateType _type = UPDATE_ALL);
 
 public Q_SLOTS:
 
-  void runPyScriptFile(const QString& _filename, bool _clearPrevious);
+  bool runPyScriptFile(const QString& _filename, bool _clearPrevious);
   void runPyScriptFileAsync(const QString& _filename, bool _clearPrevious);
 
-  void runPyScript(const QString& _script, bool _clearPrevious);
+  bool runPyScript(const QString& _script, bool _clearPrevious);
   void runPyScriptAsync(const QString& _script, bool _clearPrevious);
 
   void convertPropsPyToCpp(const IdList& _list);
@@ -105,20 +109,22 @@ public:
   PyMeshPlugin();
   ~PyMeshPlugin();
 
-  QString name(){return QString("PyMeshPlugin");}
+  QString name(){return QString("PyMesh");}
   QString description(){return QString("Run OpenMesh Python Scripts and shows the resulting mesh.");}
 
 private:
 
     pybind11::module main_module_;
-    PyObject* global_dict_clean_; //clean global dict. used for reset. do not change
+    PyObject* global_dict_clean_ = nullptr; //clean global dict. used for reset. do not change
 
-    PyMeshToolbox* toolbox_;
+    PyMeshToolbox* toolbox_ = nullptr;
     std::vector<int> createdObjects_;
+
+    QWidget* scriptingFunctionsPresenter_ = nullptr;
 
     void initPython();
     /// Run Python Script. Does not update any object. save to call from another thread
-    void runPyScript_internal(const QString& _script, bool _clearPrevious);
+    bool runPyScript_internal(const QString& _script, bool _clearPrevious);
     /// Does not update all objects, save to call from another thread
     void convertPropsPyToCpp_internal(const IdList& _list);
 
@@ -137,6 +143,8 @@ private Q_SLOTS:
   void runPyScriptFinished();
 
   void noguiSupported() {};
+
+  void showScriptingFunctions();
 
 public Q_SLOTS:
   QString version(){ return QString("1.0"); }

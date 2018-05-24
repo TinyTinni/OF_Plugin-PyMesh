@@ -1,0 +1,10 @@
+//check if the interpreter is resets
+if(pymesh.runPyScriptFile("@CMAKE_CURRENT_SOURCE_DIR@/test_reset_pre.py", false) == false)
+{
+    core.exitFailure()
+}
+pymesh.resetInterpreter()
+if(pymesh.runPyScriptFile("@CMAKE_CURRENT_SOURCE_DIR@/test_reset_post.py", false) == false)
+{
+	core.exitFailure()
+}

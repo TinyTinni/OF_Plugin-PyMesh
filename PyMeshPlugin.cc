@@ -20,29 +20,21 @@ namespace py = pybind11;
 static const char* g_job_id = "PyMesh Interpreter";
 static long g_thread_id;
 
-PyMeshPlugin::PyMeshPlugin():
-    main_module_(),
-    global_dict_clean_(nullptr),
-    toolbox_(),
-    createdObjects_()
+PyMeshPlugin::PyMeshPlugin()
 {
 
 }
 
 PyMeshPlugin::~PyMeshPlugin()
 {
-    if (Py_IsInitialized())
-    {
-        PyGILState_Ensure();//lock GIL for cleanup
-        PyErr_Clear();
-    }
-    if (global_dict_clean_)
-        Py_XDECREF(global_dict_clean_);
-    //from boost doc (http://www.boost.org/doc/libs/1_64_0/libs/python/doc/html/tutorial/tutorial/embedding.html chapter "Getting started"):
-    //"Note that at this time you must not call Py_Finalize() to stop the interpreter. This may be fixed in a future version of boost.python." 
-    //Py_Finalize();
+    if (!Py_IsInitialized())
+        return;
 
-    main_module_.dec_ref();
+    PyGILState_Ensure();//lock GIL for cleanup
+    PyErr_Clear();
+ 
+    Py_XDECREF(global_dict_clean_);
+
     main_module_.release();
 
     py::finalize_interpreter();
@@ -75,6 +67,7 @@ void PyMeshPlugin::pluginsInitialized()
         toolbox_->pbRunFile->setText("");
         toolbox_->pbFileSelect->setIcon(QIcon(OpenFlipper::Options::iconDirStr() + OpenFlipper::Options::dirSeparator() + "document-open.png"));
         toolbox_->pbFileSelect->setText("");
+        toolbox_->lbPyVersion->setText(QString("Python Version: " PY_VERSION));
 
         toolbox_->filename->setText(OpenFlipperSettings().value("Plugin-PyMesh/LastOpenedFile",
             OpenFlipper::Options::applicationDirStr() + OpenFlipper::Options::dirSeparator()).toString());
@@ -82,7 +75,35 @@ void PyMeshPlugin::pluginsInitialized()
 
         connect(toolbox_->pbRunFile, SIGNAL(clicked()), this, SLOT(slotRunScript()));
         connect(toolbox_->pbFileSelect, SIGNAL(clicked()), this, SLOT(slotSelectFile()));
+        connect(toolbox_->pbShowFunctions, SIGNAL(clicked()), this, SLOT(showScriptingFunctions()));
     }
+}
+
+void PyMeshPlugin::showScriptingFunctions()
+{
+    if (OpenFlipper::Options::nogui())
+        return;
+
+    if (!scriptingFunctionsPresenter_)
+    {
+        //scriptingFunctionsPresenter_ = new QDialog;
+        QListWidget* lw = new QListWidget();
+        QStringList functions;
+
+        const auto re = get_supported_function_regex();
+
+        Q_EMIT getAvailableFunctions(functions);
+        size_t av_function = functions.size();
+        functions = functions.filter(re);
+        size_t used_functions = functions.size();
+        lw->addItems(functions);
+        scriptingFunctionsPresenter_ = lw;
+        //scriptingFunctionsPresenter_->layout()->addWidget(lw);
+        
+    }
+    scriptingFunctionsPresenter_->show();
+    scriptingFunctionsPresenter_->raise();
+    scriptingFunctionsPresenter_->activateWindow();
 }
 
 void PyMeshPlugin::slotRunScript()
@@ -93,122 +114,126 @@ void PyMeshPlugin::slotRunScript()
         resetInterpreter();
 
     runPyScriptFileAsync(filename, toolbox_->cbClearPrevious->isChecked());
+
+    if (toolbox_->cbConvertProps->isChecked())
+        convertPropsPyToCpp_internal(createdObjects_);
 }
 
 ////////////////////////////////////////////////////////////////
 // Property Conversion
 //
-//template<template<class> typename Handle, typename T, typename MeshT>
-//bool createAndCopyProperty(MeshT* mesh, OpenMesh::PropertyT<py::object>* pyProp)
-//{
-//    if (!py::extract<T>(*pyProp->data()).check())
-//        return false;
-//    // get old handle
-//    Handle<py::object> pyHandle;
-//    mesh->get_property_handle(pyHandle, pyProp->name());
-//
-//    // create new type
-//    Handle<T> omHandle;
-//    mesh->add_property(omHandle, pyProp->name());
-//
-//    // copy
-//    auto& omProp = mesh->property(omHandle).data_vector();
-//    auto& propvec = pyProp->data_vector();
-//    omProp.resize(propvec.size());
-//    std::transform(propvec.begin(), propvec.end(), omProp.begin(),
-//        [](py::object& p) -> T {return py::extract<T>(p); });
-//
-//    // remove old
-//    mesh->remove_property(pyHandle);
-//    return true;
-//}
-//
-//template<template<class> typename Handle, typename MeshT>
-//void convertProps(MeshT* mesh, OpenMesh::PropertyT<py::object>* pyProp)
-//{
-//    if (createAndCopyProperty<Handle, bool>(mesh, pyProp))
-//        return;
-//    if (createAndCopyProperty<Handle, short>(mesh,pyProp))
-//        return;
-//    if (createAndCopyProperty<Handle, int>(mesh,pyProp))
-//        return;
-//    if (createAndCopyProperty<Handle, float>(mesh,pyProp))
-//        return;
-//    if (createAndCopyProperty<Handle, double>(mesh,pyProp))
-//        return;
-//    if (createAndCopyProperty<Handle, ACG::Vec2f>(mesh,pyProp))
-//        return;
-//    if (createAndCopyProperty<Handle, ACG::Vec2d>(mesh,pyProp))
-//        return;
-//    if (createAndCopyProperty<Handle, ACG::Vec3f>(mesh,pyProp))
-//        return;
-//    if (createAndCopyProperty<Handle, ACG::Vec3d>(mesh,pyProp))
-//        return;
-//    if (createAndCopyProperty<Handle, ACG::Vec4f>(mesh,pyProp))
-//        return;
-//    if (createAndCopyProperty<Handle, ACG::Vec4d>(mesh,pyProp))
-//        return;
-//}
-//
-//
-//template<typename MeshT>
-//void convertProps(MeshT* mesh)
-//{
-//    std::vector<OpenMesh::PropertyT<py::object>*> props;
-//    //VProps
-//    for (auto it = mesh->vprops_begin(); it != mesh->vprops_end(); ++it)
-//    {
-//        OpenMesh::PropertyT<py::object>* p = dynamic_cast<OpenMesh::PropertyT<py::object>*>(*it);
-//        if (p)
-//            props.push_back(p);
-//    }
-//
-//    for (auto p : props)
-//        convertProps<OpenMesh::VPropHandleT>(mesh, p);
-//    props.clear();
-//
-//    //EProps
-//    for (auto it = mesh->eprops_begin(); it != mesh->eprops_end(); ++it)
-//    {
-//        OpenMesh::PropertyT<py::object>* p = dynamic_cast<OpenMesh::PropertyT<py::object>*>(*it);
-//        if (p)
-//            props.push_back(p);
-//    }
-//
-//    for (auto p : props)
-//        convertProps<OpenMesh::EPropHandleT>(mesh, p);
-//    props.clear();
-//
-//    //FProps
-//    for (auto it = mesh->fprops_begin(); it != mesh->fprops_end(); ++it)
-//    {
-//        OpenMesh::PropertyT<py::object>* p = dynamic_cast<OpenMesh::PropertyT<py::object>*>(*it);
-//        if (p)
-//            props.push_back(p);
-//    }
-//
-//    for (auto p : props)
-//        convertProps<OpenMesh::FPropHandleT>(mesh, p);
-//    props.clear();
-//
-//    // not yet implemented by openmesh python bindings
-//    //MProps
-//    // conversion problems in generic version, write own convert code for mprops
-//    //for (auto it = mesh->mprops_begin(); it != mesh->mprops_end(); ++it)
-//    //{
-//    //    OpenMesh::PropertyT<py::object>* p = dynamic_cast<OpenMesh::PropertyT<py::object>*>(*it);
-//    //    if (p)
-//    //        props.push_back(p);
-//    //}
-//
-//    //for (auto p : props)
-//    //    convertProps<OpenMesh::MPropHandleT>(mesh, p);
-//    //props.clear();
-//}
+template<template<class> typename Handle, typename T, typename MeshT>
+bool createAndCopyProperty(MeshT* mesh, OpenMesh::PropertyT<py::none>* pyProp)
+{
+    try //py::isInstance does not work, need a better solution
+    {
+        py::object obj = pyProp->data()[0];
+        py::cast<T>(obj);
+    }
+    catch (...)
+    {
+        return false;
+    }
+    // get old handle
+    Handle<py::none> pyHandle;
+    mesh->get_property_handle(pyHandle, pyProp->name());
+
+    // create new type
+    Handle<T> omHandle;
+    mesh->add_property(omHandle, pyProp->name());
+
+    // copy
+    auto& omProp = mesh->property(omHandle).data_vector();
+    auto& propvec = pyProp->data_vector();
+    omProp.resize(propvec.size());
+    std::transform(propvec.begin(), propvec.end(), omProp.begin(),
+        [](const py::object& p) -> T {return py::cast<T>(p); });
+
+    // remove old
+    mesh->remove_property(pyHandle);
+    return true;
+}
+
+template<template<class> typename Handle, typename MeshT>
+void convertProps(MeshT* mesh, OpenMesh::PropertyT<py::none>* pyProp)
+{
+    if (createAndCopyProperty<Handle, bool>(mesh, pyProp))
+        return;
+    if (createAndCopyProperty<Handle, short>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, int>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, long>(mesh, pyProp))
+        return;
+    if (createAndCopyProperty<Handle, float>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, double>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, ACG::Vec2f>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, ACG::Vec2d>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, ACG::Vec3f>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, ACG::Vec3d>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, ACG::Vec4f>(mesh,pyProp))
+        return;
+    if (createAndCopyProperty<Handle, ACG::Vec4d>(mesh,pyProp))
+        return;
+}
+
+
+template<typename MeshT>
+void convertProps(MeshT* mesh)
+{
+    std::vector<OpenMesh::PropertyT<py::none>*> props;
+
+    auto push_prop = [&props](OpenMesh::BaseProperty* bp)
+    {
+        auto p = dynamic_cast<OpenMesh::PropertyT<py::none>*>(bp);
+        if (p)
+            props.push_back(p);
+    };
+
+    //VProps
+    for (auto it = mesh->vprops_begin(); it != mesh->vprops_end(); ++it)
+        push_prop(*it);
+
+    for (auto p : props)
+        convertProps<OpenMesh::VPropHandleT>(mesh, p);
+    props.clear();
+
+    //EProps
+    for (auto it = mesh->eprops_begin(); it != mesh->eprops_end(); ++it)
+        push_prop(*it);
+
+    for (auto p : props)
+        convertProps<OpenMesh::EPropHandleT>(mesh, p);
+    props.clear();
+
+    //FProps
+    for (auto it = mesh->fprops_begin(); it != mesh->fprops_end(); ++it)
+        push_prop(*it);
+
+    for (auto p : props)
+        convertProps<OpenMesh::FPropHandleT>(mesh, p);
+    props.clear();
+
+    // not yet implemented by openmesh python bindings
+    //MProps
+    // conversion problems in generic version, write own convert code for mprops
+    //for (auto it = mesh->mprops_begin(); it != mesh->mprops_end(); ++it)
+    //  push_prop(*it);
+
+    //for (auto p : props)
+    //    convertProps<OpenMesh::MPropHandleT>(mesh, p);
+    //props.clear();
+}
 
 ////////////////////////////////////////////////////////////////
 // Python Interpreter Setup&Run
-void PyMeshPlugin::runPyScriptFile(const QString& _filename, bool _clearPrevious)
+bool PyMeshPlugin::runPyScriptFile(const QString& _filename, bool _clearPrevious)
 {
     QFile f(_filename);
     if (!f.exists())
@@ -216,7 +241,7 @@ void PyMeshPlugin::runPyScriptFile(const QString& _filename, bool _clearPrevious
         Q_EMIT log(LOGERR, QString("Could not find file %1").arg(_filename));
     }
     f.open(QFile::ReadOnly);
-    runPyScript(QTextStream(&f).readAll(), _clearPrevious);
+    return runPyScript(QTextStream(&f).readAll(), _clearPrevious);
 }
 
 void PyMeshPlugin::runPyScriptFileAsync(const QString& _filename, bool _clearPrevious)
@@ -250,13 +275,14 @@ void PyMeshPlugin::runPyScriptAsync(const QString& _script, bool _clearPrevious)
     th->startProcessing();
 }
 
-void PyMeshPlugin::runPyScript(const QString& _script, bool _clearPrevious)
+bool PyMeshPlugin::runPyScript(const QString& _script, bool _clearPrevious)
 {
-    runPyScript_internal(_script, _clearPrevious);
+    const auto b = runPyScript_internal(_script, _clearPrevious);
     runPyScriptFinished();
+    return b;
 }
 
-void PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevious)
+bool PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevious)
 {
     // init
     initPython();
@@ -267,39 +293,46 @@ void PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
             Q_EMIT deleteObject(createdObjects_[i]);
     createdObjects_.clear();
 
+    IdList previousMeshes;
+    PluginFunctions::getAllObjectIdentifiers(previousMeshes);
+
     PyGILState_STATE state = PyGILState_Ensure();
     PyThreadState* tstate = PyGILState_GetThisThreadState();
     g_thread_id = tstate->thread_id;     
 
-    PyObject* globalDictionary = PyModule_GetDict(main_module_.ptr());
-
-    PyObject* localDictionary = PyDict_New();
-    PyObject* result = PyRun_String(_script.toLatin1(), Py_file_input, globalDictionary, localDictionary);
-    if (!result) //result == 0 if exception was thrown
+    auto locals = main_module_.attr("__dict__");
+    try
     {
-        if (PyErr_ExceptionMatches(PyExc_SystemExit))
-            PyErr_Clear();  //ignore system exit evaluation, since it will close the whole application
-        else
-        {
-            // some strange error
-            // usually, an uncaught exception is caught by the python runtime
-            // and the output is piped to stderr -> OF log
-            PyObject *ptype, *pvalue, *ptraceback;
-            PyErr_Fetch(&ptype, &pvalue, &ptraceback);
-            PyObject* pyErrStr = PyObject_Str(ptype);
-            Q_EMIT log(LOGERR, QString(PyUnicode_AsUTF8(pyErrStr)));
-            Py_DECREF(pyErrStr);
-            PyErr_Restore(ptype, pvalue, ptraceback);
-        }
+        py::exec((const char*)_script.toLatin1(), py::globals(), locals);
     }
-    else
-        Py_XDECREF(result);
-    //PyDict_Clear(localDictionary);
-    Py_XDECREF(localDictionary);
-
+    catch (py::error_already_set &e)
+    {
+        Q_EMIT log(LOGERR, e.what());
+        e.restore();
+        PyGILState_Release(state);
+        return false;
+    }
+    catch (const std::runtime_error &e)
+    {
+    	Q_EMIT log(LOGERR, e.what());
+    	Q_EMIT log(LOGWARN, "Restarting Interpreter.");
+    	PyGILState_Release(state);
+    	resetInterpreter();
+    	return runPyScript_internal(_script, _clearPrevious);
+    }
     PyGILState_Release(state);
 
-    convertPropsPyToCpp_internal(createdObjects_);
+    IdList allMeshes;
+    PluginFunctions::getAllObjectIdentifiers(allMeshes);
+
+    allMeshes.erase(std::remove_if(allMeshes.begin(), allMeshes.end(), [&previousMeshes](int id)
+    		{
+    			return std::find(previousMeshes.begin(),previousMeshes.end(), id) != previousMeshes.end();
+    		} ), allMeshes.end());
+
+    createdObjects_ = std::move(allMeshes);
+
+    return true;
 }
 
 void PyMeshPlugin::runPyScriptFinished()
@@ -316,24 +349,24 @@ void PyMeshPlugin::runPyScriptFinished()
 
 void PyMeshPlugin::convertPropsPyToCpp_internal(const IdList& _list)
 {
-//    for (const auto& i : _list)
-//    {
-//        TriMeshObject* triobj;
-//        if (PluginFunctions::getObject(i, triobj))
-//            convertProps(triobj->mesh());
-//        PolyMeshObject* polyobj;
-//        if (PluginFunctions::getObject(i, polyobj))
-//            convertProps(polyobj->mesh());
-//    }
+    for (const auto& i : _list)
+    {
+        TriMeshObject* triobj;
+        if (PluginFunctions::getObject(i, triobj))
+            convertProps(triobj->mesh());
+        PolyMeshObject* polyobj;
+        if (PluginFunctions::getObject(i, polyobj))
+            convertProps(polyobj->mesh());
+    }
 }
 
 void PyMeshPlugin::convertPropsPyToCpp(const IdList& _list)
 {
-//    convertPropsPyToCpp_internal(_list);
-//    OpenFlipper::Options::redrawDisabled(true);
-//    for (const auto& i : _list)
-//        Q_EMIT updatedObject(i, UPDATE_ALL);
-//    OpenFlipper::Options::redrawDisabled(false);
+    convertPropsPyToCpp_internal(_list);
+    OpenFlipper::Options::redrawDisabled(true);
+    for (const auto& i : _list)
+        Q_EMIT updatedObject(i, UPDATE_ALL);
+    OpenFlipper::Options::redrawDisabled(false);
 
 }
 
@@ -354,8 +387,13 @@ void PyMeshPlugin::initPython()
     if (Py_IsInitialized())
         return;
 
-    PyImport_AppendInittab("openmesh", openmesh_pyinit_function);
-    //PyImport_AppendInittab("openflipper", openflipper_pyinit_function);
+    {
+        PyImport_AppendInittab("openmesh", openmesh_pyinit_function);
+        QStringList functions;
+        Q_EMIT getAvailableFunctions(functions);
+        auto ofp_init = openflipper_get_init_function(std::move(functions));
+        PyImport_AppendInittab("openflipper", std::move(ofp_init));
+    }
 
     Py_SetProgramName(Py_DecodeLocale((*OpenFlipper::Options::argv())[0], NULL));
     py::initialize_interpreter();
@@ -374,9 +412,9 @@ void PyMeshPlugin::initPython()
 
     py::module om_module(py::module::import("openmesh"));
     main_namespace["openmesh"] = om_module;
-    //py::module of_module(py::module::import("openflipper"));
-    //main_namespace["openfipper"] = of_module;
-    //PyRun_SimpleString("import openflipper");
+    py::module of_module(py::module::import("openflipper"));
+    main_namespace["openfipper"] = of_module;
+    PyRun_SimpleString("import openflipper as ofp");
     global_dict_clean_ = PyDict_Copy(PyModule_GetDict(main_module_.ptr()));
     
 
@@ -429,8 +467,6 @@ void* PyMeshPlugin::createTriMesh()
     TriMeshObject* object;
     PluginFunctions::getObject(objectId, object);
 
-    createdObjects_.push_back(objectId);
-
     return object->mesh();
 }
 
@@ -444,8 +480,6 @@ void* PyMeshPlugin::createPolyMesh()
     PluginFunctions::getObject(objectId, object);
     if (!object)
         return nullptr;
-
-    createdObjects_.push_back(objectId);
 
     return object->mesh();
 }

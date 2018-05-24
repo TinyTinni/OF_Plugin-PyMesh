@@ -1,0 +1,25 @@
+// excluded files doc
+// test_trimesh_normal_calculations:
+// 	OpenFlipper requests face normals and this test requires a mesh without face normals, otherwise it fails
+
+python_code="\n\
+import unittest\n\
+import glob\n\
+import os\n\
+start_dir = r'@OPENMESH_PYTHON_TEST_DIR@'\n\
+os.chdir(start_dir)\n\
+exclude_files = ['test_trimesh_normal_calculations.py']\n\
+\
+test_files = glob.glob('test_*.py')\n\
+test_files = list(filter(lambda x: x not in exclude_files, test_files))\n\
+module_strings = [test_file[0:len(test_file)-3] for test_file in test_files]\n\
+suites = [unittest.defaultTestLoader.loadTestsFromName(test_file) for test_file in module_strings]\n\
+test_suite = unittest.TestSuite(suites)\n\
+test_runner = unittest.TextTestRunner().run(test_suite)\n\
+if test_runner.failures:\n\
+    raise  RuntimeError()\n\
+"
+if(pymesh.runPyScript(python_code, false) == false)
+{
+	core.exitFailure()
+}
