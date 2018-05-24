@@ -147,7 +147,7 @@ private Q_SLOTS:
   void showScriptingFunctions();
 
 public Q_SLOTS:
-  QString version(){ return QString("1.0"); }
+  QString version(){ return QString("2.0"); }
 };
 
 
