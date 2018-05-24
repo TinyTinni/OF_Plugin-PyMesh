@@ -25,7 +25,7 @@ Note: This project uses submodules, you may want to clone with --recursive.
 ## Build Instructions
 - Place (e.g. via git clone --recursive) the files in a directory called "Plugin-PyMesh" into your OpenFlipper source dir.
 - Run CMake
-- add Python & Boost Python, if CMake couldn't find python or boost, have a look at ["OpenMesh Python Bindings Tutorial"](http://openmesh.org/Daily-Builds/Doc/a03957.html)
+- add Python & Boost Python, if CMake couldn't find python or boost, have a look at ["OpenMesh Python Bindings Tutorial"](http://www.openmesh.org/media/Documentations/OpenMesh-6.3-Documentation/a00020.html)
 - you don't have to enable "OPENMESH_BUILD_PYTHON_BINDINGS"
 - Build, using your selected toolchain
 
