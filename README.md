@@ -19,7 +19,7 @@ but also use all the OpenFlipper features.
 Note: This project uses submodules, you may want to clone with --recursive.
 
 - [OpenFlipper](https://www.openflipper.org) (version in gitrepo)
-- [Python](https://www.python.org) (tested >= 3.6, builds with 2.7)
+- [Python](https://www.python.org) (tested >= 3.6)
 
 Already included as submodules:
 - [pybind11](https://github.com/pybind/pybind11)
