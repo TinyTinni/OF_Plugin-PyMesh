@@ -146,6 +146,8 @@ private Q_SLOTS:
 
   void showScriptingFunctions();
 
+  void slotconvertPropsPyToCpp();
+
 public Q_SLOTS:
   QString version(){ return QString("2.0"); }
 };

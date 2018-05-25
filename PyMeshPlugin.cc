@@ -76,7 +76,15 @@ void PyMeshPlugin::pluginsInitialized()
         connect(toolbox_->pbRunFile, SIGNAL(clicked()), this, SLOT(slotRunScript()));
         connect(toolbox_->pbFileSelect, SIGNAL(clicked()), this, SLOT(slotSelectFile()));
         connect(toolbox_->pbShowFunctions, SIGNAL(clicked()), this, SLOT(showScriptingFunctions()));
+        connect(toolbox_->pbConvertPropsToCpp, SIGNAL(clicked()), this, SLOT(slotconvertPropsPyToCpp()));
     }
+}
+
+void PyMeshPlugin::slotconvertPropsPyToCpp()
+{
+    IdList tm;
+    PluginFunctions::getTargetIdentifiers(tm);
+    convertPropsPyToCpp(tm);
 }
 
 void PyMeshPlugin::showScriptingFunctions()

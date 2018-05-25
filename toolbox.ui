@@ -17,17 +17,7 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="3" column="0">
-    <widget class="QLineEdit" name="filename">
-     <property name="statusTip">
-      <string>Path to Python script.</string>
-     </property>
-     <property name="whatsThis">
-      <string>Path to Python script.</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="0">
+   <item row="8" column="0">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -56,6 +46,16 @@
      </property>
      <property name="checked">
       <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLineEdit" name="filename">
+     <property name="statusTip">
+      <string>Path to Python script.</string>
+     </property>
+     <property name="whatsThis">
+      <string>Path to Python script.</string>
      </property>
     </widget>
    </item>
@@ -89,6 +89,20 @@
      </item>
     </layout>
    </item>
+   <item row="7" column="1">
+    <widget class="QLabel" name="lbPyVersion">
+     <property name="text">
+      <string>&lt;Python Version&gt;</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QPushButton" name="pbShowFunctions">
+     <property name="text">
+      <string>Show ofp functions</string>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="0">
     <widget class="QCheckBox" name="cbClearPrevious">
      <property name="statusTip">
@@ -108,7 +122,7 @@
    <item row="4" column="0">
     <widget class="QCheckBox" name="cbConvertProps">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="toolTip">
       <string>Tries to convert all the properties added with python. Can be high CPU intensive.</string>
@@ -121,19 +135,38 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
-    <widget class="QPushButton" name="pbShowFunctions">
-     <property name="text">
-      <string>Show ofp functions</string>
+   <item row="7" column="0">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <property name="topMargin">
+      <number>0</number>
      </property>
-    </widget>
-   </item>
-   <item row="5" column="1">
-    <widget class="QLabel" name="lbPyVersion">
-     <property name="text">
-      <string>&lt;Python Version&gt;</string>
-     </property>
-    </widget>
+     <item>
+      <widget class="QPushButton" name="pbConvertPropsToCpp">
+       <property name="toolTip">
+        <string>Tries to convert all Python properties of given &lt;Targets&gt; to C++ Types.</string>
+       </property>
+       <property name="whatsThis">
+        <string>Tries to convert all Python properties of given &lt;Targets&gt; to C++ Types. Some Plugins, such as the PropertyVis Plugin, can't handle properties added with python. Use this button.</string>
+       </property>
+       <property name="text">
+        <string>Properties to C++ Types</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
