@@ -2,6 +2,7 @@
 # http://openmesh.org/Daily-Builds/Doc/a03957.html
 
 from openmesh import *
+import numpy as np
 
 mesh = TriMesh()
 
@@ -29,7 +30,12 @@ for vh in mesh.vertices():
 mesh.vertex_property("doubleProp")
 
 for vh in mesh.vertices():
-    mesh.set_vertex_property("doubleProp", vh, vh.idx()*0.1)
+    mesh.set_vertex_property("doubleProp", vh, vh.idx()/(vh.idx()+1))
+    
+mesh.vertex_property("vectorProp")
+
+for vh in mesh.vertices():
+    mesh.set_vertex_property("vectorProp", vh, np.array([vh.idx(),vh.idx()+1,vh.idx()+2]))
 
 # !!! Don't Forget: normals are not updated automatically !!!
 mesh.update_normals()

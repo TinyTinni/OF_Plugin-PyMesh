@@ -108,16 +108,18 @@ __Note:__ Not all return types are supported (espacially, the function which ret
 
 
 ## About Custom Properties
-After script execution, the plugin tries to convert all python properties into c++ properties.
-Currently, only pod types and the vectors by ACG are supported.
-Not supported yet are properties added as numpy array.
+You can convert all properties with python types (all properties created in python script), to the corresponding C++ Types (i.e. for futher processing or saving in om file format).
+Currently, only pod types and buffers (such as numpy arrays) are supported.
 
+__note:__ The Plugin PropertyVis only supports double/ACG::Vec3d, so you may cannot inspect some properties. Ask the creator of this Plugin for more type support.
+ 
 ## About Python Object Lifetime
 
 Lifetime of Meshes are owned by OpenFlipper.
 
 ## Known isses
 - Python Mesh in OpenFlipper has already face normals after creation, where the Mesh given back by pure OpenMesh-Python has no face normals
+- Converting Python Props to C++ Props will destroy the backup hierarchy. Atm, it is not possible to clear the backup history, so expect some undefined behaviour if you undo before the conversion
 
 ## Project Build Status
 Project was created and tested on Windows VS2017 and Linux using GCC7.

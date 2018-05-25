@@ -128,14 +128,54 @@ void PyMeshPlugin::slotRunScript()
 ////////////////////////////////////////////////////////////////
 // Property Conversion
 //
+
+template<typename T>
+struct Type2Type{};
+
+template<typename T, typename MeshT>
+bool property_is_type(const MeshT* mesh, const OpenMesh::PropertyT<py::none>* pyProp, Type2Type<bool>)
+{
+    //PY_TYPE(obj.ptr()) == PyBool_Type;
+    py::object obj = pyProp->data()[0];
+    return PyBool_Check(Py_TYPE(obj.ptr()));
+}
+
+template<typename T, typename MeshT>
+bool  property_is_type(const MeshT* mesh, const OpenMesh::PropertyT<py::none>* pyProp, Type2Type<long>)
+{
+    py::object obj = pyProp->data()[0];
+    return PyLong_Check(Py_TYPE(obj.ptr()));//PY_TYPE(obj.ptr()) == PyLong_Type;
+}
+
+template<typename T, typename MeshT>
+bool  property_is_type(const MeshT* mesh, const OpenMesh::PropertyT<py::none>* pyProp, Type2Type<double>)
+{
+    py::object obj = pyProp->data()[0];
+    return PyFloat_Check(PY_TYPE(obj.ptr()));
+}
+
+template<typename T, typename MeshT>
+bool property_is_type(const MeshT* mesh, const OpenMesh::PropertyT<py::none>* pyProp, Type2Type<T>)
+{
+    try
+    {
+        py::object obj = pyProp->data()[0];
+        py::object tmp = py::cast(T{});
+        return Py_TYPE(obj.ptr()) == Py_TYPE(tmp.ptr());
+    }
+    catch (const py::cast_error&)
+    {
+        return false;
+    }
+}
+
+
 template<template<class> typename Handle, typename T, typename MeshT>
 bool createAndCopyProperty(MeshT* mesh, OpenMesh::PropertyT<py::none>* pyProp)
 {
     //check if we can cast
     {
-        py::object obj = py::cast(T{});
-        //PyObject_TypeCheck ?
-        if (obj.ptr()->ob_type != pyProp->data()[0].ptr()->ob_type)
+        if (!property_is_type(mesh, pyProp, Type2Type<T>{}))
             return false;
     }
 
@@ -147,20 +187,101 @@ bool createAndCopyProperty(MeshT* mesh, OpenMesh::PropertyT<py::none>* pyProp)
     // remove old (no properties with same names can exist)
     std::vector<py::none> propvec{};
     std::swap(pyProp->data_vector(), propvec);
+
+
+    // copy too immediate buffer 
+    std::vector<T> omProp (propvec.size());
+    
+    try
+    {
+        std::transform(propvec.begin(), propvec.end(), omProp.begin(),
+            [](const py::object& p) -> T {return py::cast<T>(p); });
+    }
+    catch (py::cast_error& e)
+    {
+        return false;
+    }
+    const bool persistent = pyProp->persistent();
     mesh->remove_property(pyHandle);
 
     // create new type
     Handle<T> omHandle;
     mesh->add_property(omHandle, prop_name);
+    std::swap(mesh->property(omHandle).data_vector(), std::move(omProp));
+    mesh->property(omHandle).set_persistent(persistent);
+
+    return true;
+}
+
+
+template<template<class> typename Handle, typename T, typename MeshT>
+bool createAndCopyPropertyVector(MeshT* mesh, OpenMesh::PropertyT<py::none>* pyProp)
+{
+    //check if we can cast
+    py::buffer obj;
+    try
+    {
+        obj = pyProp->data()[0]; //PyObject_CheckBuffer
+        if (!PyObject_CheckBuffer(obj.ptr()))
+            return false;
+        py::buffer_info bi = obj.request();
+        if (bi.ndim != 1)
+            return false;
+        if (bi.size != T::size_)
+            return false;
+        if (bi.itemsize != sizeof(T::value_type))
+            return false;
+    }
+    catch (const py::cast_error&)
+    {
+        return false;
+    } 
+
+    // get old handle
+    Handle<py::none> pyHandle;
+    std::string prop_name = pyProp->name();
+    mesh->get_property_handle(pyHandle, prop_name);
+
+    // remove old (no properties with same names can exist)
+    std::vector<py::none> propvec{};
+    std::swap(pyProp->data_vector(), propvec);
+
 
     // copy too immediate buffer 
-    auto& omProp = mesh->property(omHandle).data_vector();
-    
-    //todo:exception block when failcast 
-    omProp.resize(propvec.size());
-    std::transform(propvec.begin(), propvec.end(), omProp.begin(),
-        [](const py::object& p) -> T {return py::cast<T>(p); });    
-    
+    std::vector<T> omProp(propvec.size());
+
+    try
+    {
+        std::transform(propvec.begin(), propvec.end(), omProp.begin(),
+            [](const py::object& p) -> T
+        {
+            py::buffer b = p;
+            T r;
+            int i = 0;
+            for (auto it = b.begin(); it != b.end(); ++it, ++i)
+                r[i] = py::cast<typename T::value_type>(*it);
+            // Doesn't work for some reason (only 2 iterations on a vec3)
+            //std::transform(b.begin(), b.end(), r.begin(), [](auto i)
+            //{
+            //    return py::cast<typename T::value_type>(i);
+            //});
+            return r;
+        }
+        );
+    }
+    catch (py::cast_error& e)
+    {
+        return false;
+    }
+    const bool persistent = pyProp->persistent();
+    mesh->remove_property(pyHandle);
+
+    // create new type
+    Handle<T> omHandle;
+    mesh->add_property(omHandle, prop_name);
+    std::swap(mesh->property(omHandle).data_vector(), std::move(omProp));
+    mesh->property(omHandle).set_persistent(persistent);
+
     return true;
 }
 
@@ -177,21 +298,21 @@ void convertProps(MeshT* mesh, OpenMesh::PropertyT<py::none>* pyProp)
         return;
     if (createAndCopyProperty<Handle, long>(mesh, pyProp))
         return;
-    //if (createAndCopyProperty<Handle, float>(mesh,pyProp))
-    //    return;
+    if (createAndCopyProperty<Handle, float>(mesh,pyProp))
+        return;
     if (createAndCopyProperty<Handle, double>(mesh,pyProp))
         return;
-    if (createAndCopyProperty<Handle, ACG::Vec2f>(mesh,pyProp))
+    if (createAndCopyPropertyVector<Handle, ACG::Vec2f>(mesh,pyProp))
         return;
-    if (createAndCopyProperty<Handle, ACG::Vec2d>(mesh,pyProp))
+    if (createAndCopyPropertyVector<Handle, ACG::Vec2d>(mesh,pyProp))
         return;
-    if (createAndCopyProperty<Handle, ACG::Vec3f>(mesh,pyProp))
+    if (createAndCopyPropertyVector<Handle, ACG::Vec3f>(mesh,pyProp))
         return;
-    if (createAndCopyProperty<Handle, ACG::Vec3d>(mesh,pyProp))
+    if (createAndCopyPropertyVector<Handle, ACG::Vec3d>(mesh,pyProp))
         return;
-    if (createAndCopyProperty<Handle, ACG::Vec4f>(mesh,pyProp))
+    if (createAndCopyPropertyVector<Handle, ACG::Vec4f>(mesh,pyProp))
         return;
-    if (createAndCopyProperty<Handle, ACG::Vec4d>(mesh,pyProp))
+    if (createAndCopyPropertyVector<Handle, ACG::Vec4d>(mesh,pyProp))
         return;
 }
 
@@ -211,25 +332,31 @@ void convertProps(MeshT* mesh)
     //VProps
     for (auto it = mesh->vprops_begin(); it != mesh->vprops_end(); ++it)
         push_prop(*it);
-
+    
+    PyGILState_STATE state = PyGILState_Ensure();
     for (auto p : props)
         convertProps<OpenMesh::VPropHandleT>(mesh, p);
+    PyGILState_Release(state);
     props.clear();
 
     //EProps
     for (auto it = mesh->eprops_begin(); it != mesh->eprops_end(); ++it)
         push_prop(*it);
 
+    state = PyGILState_Ensure();
     for (auto p : props)
         convertProps<OpenMesh::EPropHandleT>(mesh, p);
+    PyGILState_Release(state);
     props.clear();
 
     //FProps
     for (auto it = mesh->fprops_begin(); it != mesh->fprops_end(); ++it)
         push_prop(*it);
 
+    state = PyGILState_Ensure();
     for (auto p : props)
         convertProps<OpenMesh::FPropHandleT>(mesh, p);
+    PyGILState_Release(state);
     props.clear();
 
     // not yet implemented by openmesh python bindings
@@ -380,7 +507,10 @@ void PyMeshPlugin::convertPropsPyToCpp(const IdList& _list)
     convertPropsPyToCpp_internal(_list);
     OpenFlipper::Options::redrawDisabled(true);
     for (const auto& i : _list)
+    {
         Q_EMIT updatedObject(i, UPDATE_ALL);
+        Q_EMIT createBackup(i, "Python Properties Converted");
+    }
     OpenFlipper::Options::redrawDisabled(false);
 
 }
