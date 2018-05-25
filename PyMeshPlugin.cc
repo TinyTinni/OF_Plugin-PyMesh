@@ -123,8 +123,6 @@ void PyMeshPlugin::slotRunScript()
 
     runPyScriptFileAsync(filename, toolbox_->cbClearPrevious->isChecked());
 
-    if (toolbox_->cbConvertProps->isChecked())
-        convertPropsPyToCpp_internal(createdObjects_);
 }
 
 ////////////////////////////////////////////////////////////////
@@ -133,48 +131,54 @@ void PyMeshPlugin::slotRunScript()
 template<template<class> typename Handle, typename T, typename MeshT>
 bool createAndCopyProperty(MeshT* mesh, OpenMesh::PropertyT<py::none>* pyProp)
 {
-    try //py::isInstance does not work, need a better solution
+    //check if we can cast
     {
-        py::object obj = pyProp->data()[0];
-        py::cast<T>(obj);
+        py::object obj = py::cast(T{});
+        //PyObject_TypeCheck ?
+        if (obj.ptr()->ob_type != pyProp->data()[0].ptr()->ob_type)
+            return false;
     }
-    catch (...)
-    {
-        return false;
-    }
+
     // get old handle
     Handle<py::none> pyHandle;
-    mesh->get_property_handle(pyHandle, pyProp->name());
+    std::string prop_name = pyProp->name();
+    mesh->get_property_handle(pyHandle, prop_name);
+
+    // remove old (no properties with same names can exist)
+    std::vector<py::none> propvec{};
+    std::swap(pyProp->data_vector(), propvec);
+    mesh->remove_property(pyHandle);
 
     // create new type
     Handle<T> omHandle;
-    mesh->add_property(omHandle, pyProp->name());
+    mesh->add_property(omHandle, prop_name);
 
-    // copy
+    // copy too immediate buffer 
     auto& omProp = mesh->property(omHandle).data_vector();
-    auto& propvec = pyProp->data_vector();
+    
+    //todo:exception block when failcast 
     omProp.resize(propvec.size());
     std::transform(propvec.begin(), propvec.end(), omProp.begin(),
-        [](const py::object& p) -> T {return py::cast<T>(p); });
-
-    // remove old
-    mesh->remove_property(pyHandle);
+        [](const py::object& p) -> T {return py::cast<T>(p); });    
+    
     return true;
 }
 
 template<template<class> typename Handle, typename MeshT>
 void convertProps(MeshT* mesh, OpenMesh::PropertyT<py::none>* pyProp)
 {
+    // short and float are not supported by prop vis -> skip them
+
     if (createAndCopyProperty<Handle, bool>(mesh, pyProp))
         return;
-    if (createAndCopyProperty<Handle, short>(mesh,pyProp))
-        return;
+    //if (createAndCopyProperty<Handle, short>(mesh,pyProp))
+    //    return;
     if (createAndCopyProperty<Handle, int>(mesh,pyProp))
         return;
     if (createAndCopyProperty<Handle, long>(mesh, pyProp))
         return;
-    if (createAndCopyProperty<Handle, float>(mesh,pyProp))
-        return;
+    //if (createAndCopyProperty<Handle, float>(mesh,pyProp))
+    //    return;
     if (createAndCopyProperty<Handle, double>(mesh,pyProp))
         return;
     if (createAndCopyProperty<Handle, ACG::Vec2f>(mesh,pyProp))
@@ -200,7 +204,7 @@ void convertProps(MeshT* mesh)
     auto push_prop = [&props](OpenMesh::BaseProperty* bp)
     {
         auto p = dynamic_cast<OpenMesh::PropertyT<py::none>*>(bp);
-        if (p)
+        if (p && p->n_elements() > 0)
             props.push_back(p);
     };
 

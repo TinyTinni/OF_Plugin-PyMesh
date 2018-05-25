@@ -25,6 +25,11 @@ mesh.vertex_property("intProp")
 
 for vh in mesh.vertices():
     mesh.set_vertex_property("intProp", vh, vh.idx())
+    
+mesh.vertex_property("doubleProp")
+
+for vh in mesh.vertices():
+    mesh.set_vertex_property("doubleProp", vh, vh.idx()*0.1)
 
 # !!! Don't Forget: normals are not updated automatically !!!
 mesh.update_normals()
