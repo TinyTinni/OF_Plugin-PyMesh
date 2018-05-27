@@ -151,7 +151,7 @@ template<typename T, typename MeshT>
 bool  property_is_type(const MeshT* mesh, const OpenMesh::PropertyT<py::none>* pyProp, Type2Type<double>)
 {
     py::object obj = pyProp->data()[0];
-    return PyFloat_Check(PY_TYPE(obj.ptr()));
+    return PyFloat_Check(Py_TYPE(obj.ptr()));
 }
 
 template<typename T, typename MeshT>
@@ -207,7 +207,7 @@ bool createAndCopyProperty(MeshT* mesh, OpenMesh::PropertyT<py::none>* pyProp)
     // create new type
     Handle<T> omHandle;
     mesh->add_property(omHandle, prop_name);
-    std::swap(mesh->property(omHandle).data_vector(), std::move(omProp));
+    mesh->property(omHandle).data_vector() = std::move(omProp);
     mesh->property(omHandle).set_persistent(persistent);
 
     return true;
@@ -229,7 +229,7 @@ bool createAndCopyPropertyVector(MeshT* mesh, OpenMesh::PropertyT<py::none>* pyP
             return false;
         if (bi.size != T::size_)
             return false;
-        if (bi.itemsize != sizeof(T::value_type))
+        if (bi.itemsize != sizeof(typename T::value_type))
             return false;
     }
     catch (const py::cast_error&)
@@ -279,7 +279,7 @@ bool createAndCopyPropertyVector(MeshT* mesh, OpenMesh::PropertyT<py::none>* pyP
     // create new type
     Handle<T> omHandle;
     mesh->add_property(omHandle, prop_name);
-    std::swap(mesh->property(omHandle).data_vector(), std::move(omProp));
+    mesh->property(omHandle).data_vector() = std::move(omProp);
     mesh->property(omHandle).set_persistent(persistent);
 
     return true;
