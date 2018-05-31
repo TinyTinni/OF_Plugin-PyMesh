@@ -119,10 +119,10 @@ Lifetime of Meshes are owned by OpenFlipper.
 
 ## Known isses
 - Python Mesh in OpenFlipper has already face normals after creation, where the Mesh given back by pure OpenMesh-Python has no face normals
-- Converting Python Props to C++ Props will destroy the backup hierarchy. Atm, it is not possible to clear the backup history, so expect some undefined behaviour if you undo before the conversion
+- Converting Python Props to C++ Props will destroy the backup history. Atm, it is not possible to clear the backup history, so expect some undefined behaviour if you undo before the conversion
 
 ## Project Build Status
-Project was created and tested on Windows VS2017 and Linux using GCC7.
+Project was created and tested on Windows VS2017 and Linux using GCC8.
 
 ## License
 [GPLv3 License](./LICENSE) © Matthias Möller. Made with ♥ in Germany.
