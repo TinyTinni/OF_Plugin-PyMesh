@@ -258,12 +258,6 @@ PYBIND11_MODULE(openflipper, m)
 
 }
 
-#if (PY_MAJOR_VERSION == 2)
-    PyObject* (*openflipper_pyinit_function)(void) = &initopenflipper;//untested
-#else
-    PyObject* (*openflipper_pyinit_function)(void) = &PyInit_openflipper;
-#endif
-
 PyObject*(*openflipper_get_init_function(const QStringList& ofs_functions))(void)
 {
     QRegularExpression re = get_supported_function_regex();
@@ -300,7 +294,12 @@ PyObject*(*openflipper_get_init_function(const QStringList& ofs_functions))(void
             g_submodule_collector[pn][fn].add_overload(params);
     }
 
-    return openflipper_pyinit_function;
+
+#if (PY_MAJOR_VERSION == 2)
+    return &initopenflipper;//untested
+#else
+    return &PyInit_openflipper;
+#endif
 }
 
 QRegularExpression get_supported_function_regex()
