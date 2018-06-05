@@ -3,6 +3,7 @@
 
 from openmesh import *
 import numpy as np
+import openflipper as ofp
 
 mesh = TriMesh()
 
