@@ -24,7 +24,7 @@ PyTriMesh* createMesh<PyTriMesh>()
 template<>
 PyPolyMesh* createMesh<PyPolyMesh>()
 {
-	return reinterpret_cast<PyPolyMesh*>(requestPolyMesh());
+    return reinterpret_cast<PyPolyMesh*>(requestPolyMesh());
 }
 
 template<typename Mesh>
@@ -64,20 +64,20 @@ void set_constructor(py::object& obj, T f, Extra... extra)
 //////////////////////////////////////////
 
 void registerFactoryMethods(pybind11::module& _om_module,
-		std::function<void* ()> _create_trimesh,
-		std::function<void* ()> _create_polymesh)
+        std::function<void* ()> _create_trimesh,
+        std::function<void* ()> _create_polymesh)
 {
-	requestTriMesh = _create_trimesh;
-	requestPolyMesh = _create_polymesh;
+    requestTriMesh = _create_trimesh;
+    requestPolyMesh = _create_polymesh;
 
-	py::object om_namespace = _om_module.attr("__dict__");
+    py::object om_namespace = _om_module.attr("__dict__");
 
-	py::object trimesh_m = _om_module.attr("TriMesh");
-	py::setattr(trimesh_m,"__init__",py::none());//erase all constructors (espacially the overloads overloaded)
+    py::object trimesh_m = _om_module.attr("TriMesh");
+    py::setattr(trimesh_m,"__init__",py::none());//erase all constructors (espacially the overloads overloaded)
 
-	set_constructor<PyTriMesh>(trimesh_m, &createMesh<PyTriMesh>);
+    set_constructor<PyTriMesh>(trimesh_m, &createMesh<PyTriMesh>);
     set_constructor<PyTriMesh>(trimesh_m, &createMesh_numpy<PyTriMesh>, py::arg("points"), py::arg("face_vertex_indices") = py::array_t<int>());
-	//set_constructor<TriMesh,int>(trimesh_m, &createTriMesh);
+    //set_constructor<TriMesh,int>(trimesh_m, &createTriMesh);
 
     py::object polymesh_m = _om_module.attr("PolyMesh");
     py::setattr(polymesh_m, "__init__", py::none());//erase all constructors (espacially the overloads overloaded)

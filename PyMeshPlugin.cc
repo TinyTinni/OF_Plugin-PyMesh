@@ -455,10 +455,10 @@ bool PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
     }
     catch (const std::runtime_error &e)
     {
-    	Q_EMIT log(LOGERR, e.what());
-    	Q_EMIT log(LOGWARN, "Restarting Interpreter.");
-    	PyGILState_Release(state);
-    	resetInterpreter();
+        Q_EMIT log(LOGERR, e.what());
+        Q_EMIT log(LOGWARN, "Restarting Interpreter.");
+        PyGILState_Release(state);
+        resetInterpreter();
         result = false;
         state = PyGILState_Ensure();
     }
@@ -468,9 +468,9 @@ bool PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevi
     PluginFunctions::getAllObjectIdentifiers(allMeshes);
 
     allMeshes.erase(std::remove_if(allMeshes.begin(), allMeshes.end(), [&previousMeshes](int id)
-    		{
-    			return std::find(previousMeshes.begin(),previousMeshes.end(), id) != previousMeshes.end();
-    		} ), allMeshes.end());
+            {
+                return std::find(previousMeshes.begin(),previousMeshes.end(), id) != previousMeshes.end();
+            } ), allMeshes.end());
 
     createdObjects_ = std::move(allMeshes);
 
@@ -563,9 +563,9 @@ void PyMeshPlugin::initPython()
     
 
     // hook into mesh constructors
-	registerFactoryMethods(om_module,
-			[this]() {return this->createTriMesh();},
-			[this]() {return this->createPolyMesh();});
+    registerFactoryMethods(om_module,
+            [this]() {return this->createTriMesh();},
+            [this]() {return this->createPolyMesh();});
 
     PyEval_SaveThread();
 }
