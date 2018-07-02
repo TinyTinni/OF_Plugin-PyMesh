@@ -1,11 +1,6 @@
 # Python Plugin for OpenFlipper
 Run Python Scripts in OpenFlipper with OpenMesh-Python support.
 
-__Note__: Currently, it is not possible to compile the plugin with the current OpenMesh-Python version found in git.
-We are working on it, but it takes some time.
-If you can't wait/want a preview, you can use [these patchfiles](https://gist.github.com/TinyTinni/26bfdd5adb398c28f14af425fe90f700), patching OpenMesh-Python manually.
-
-
 This OpenFlipper Plugin runs any Python script and provides OpenFlipper support for meshes
 created with the OpenMesh-Python bindings. 
 The meshes (poly/tri) created by the script will be displayed in OpenFlipper as normal meshes.

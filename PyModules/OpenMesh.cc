@@ -5,9 +5,9 @@
 using TriMesh = PyTriMesh;
 using PolyMesh = PyPolyMesh;
 
-#include "OpenMesh-Python/src/Bindings.cc"
-#include "OpenMesh-Python/src/Miscellaneous.cc"
-#include "OpenMesh-Python/src/InputOutput.cc"
+#include "openmesh-python/src/Bindings.cc"
+#include "openmesh-python/src/Miscellaneous.cc"
+#include "openmesh-python/src/InputOutput.cc"
 
 
 #if (PY_MAJOR_VERSION == 2)

@@ -1,0 +1,13 @@
+build/
+tests/__pycache__
+tests/OutFiles
+*.pyc
+
+.eggs/
+build-setuptools/
+dist/
+openmesh.egg-info/
+
+CMakeLists.txt.user
+
+docs/_build/
