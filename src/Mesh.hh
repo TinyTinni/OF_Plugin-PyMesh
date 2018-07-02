@@ -365,7 +365,7 @@ void expose_type_specific_functions(Class& _class) {
  * Function template specialization for polygon meshes.
  */
 template <>
-void expose_type_specific_functions(py::class_<PolyMesh>& _class) {
+void expose_type_specific_functions(py::class_<PolyMesh, HolderType<PolyMesh> >& _class) {
 	typedef PolyMesh::Scalar Scalar;
 	typedef PolyMesh::Point  Point;
 	typedef PolyMesh::Normal Normal;
@@ -404,7 +404,7 @@ void expose_type_specific_functions(py::class_<PolyMesh>& _class) {
  * Function template specialization for triangle meshes.
  */
 template <>
-void expose_type_specific_functions(py::class_<TriMesh>& _class) {
+void expose_type_specific_functions(py::class_<TriMesh, HolderType<TriMesh> >& _class) {
 	typedef TriMesh::Scalar Scalar;
 	typedef TriMesh::Point  Point;
 	typedef TriMesh::Normal Normal;
@@ -592,7 +592,7 @@ void expose_mesh(py::module& m, const char *_name) {
 	//  Mesh Type
 	//======================================================================
 
-	py::class_<Mesh> class_mesh(m, _name);
+	py::class_<Mesh, HolderType<Mesh> > class_mesh(m, _name);
 
 	class_mesh
 		.def(py::init<>())
