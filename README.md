@@ -48,7 +48,7 @@ You can also use the script language included in OpenFlipper, search for
 ## Execute Python Script from a Plugin
 
 If you develop your own OpenFlipper-Plugin, you can execute Python scripts using the [RPC Plugin Interface](http://openflipper.org/Documentation/latest/a00087.html) or by the [internal scripting engine](http://openflipper.org/Documentation/latest/a00119.html).
-The correspoding functions are the following:
+The corresponding functions are the following:
 
 ```cpp
 
@@ -128,8 +128,8 @@ Lifetime of Meshes are owned by OpenFlipper.
 
 ## Known isses
 
-- Python Mesh in OpenFlipper has already face normals after creation, where the Mesh given back by pure OpenMesh-Python has no face normals
-- Converting Python Props to C++ Props will destroy the backup history. Atm, it is not possible to clear the backup history, so expect some undefined behaviour if you undo before the conversion
+- The Meshes in OpenFlipper have already face normals after creation (also in python), where the Meshes given back by pure OpenMesh-Python (not running in OpenFlipper) have no face normals
+- Converting Python Props to C++ Props will destroy the backup history. At the moment, it is not possible to clear the backup history. Therefore, expect some undefined behavior if you undo to a state before the conversion
 
 ## Project Build Status
 Project was created and tested on Windows VS2017 and Linux using GCC8.
