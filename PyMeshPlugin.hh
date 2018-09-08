@@ -122,11 +122,20 @@ private:
 
     QWidget* scriptingFunctionsPresenter_ = nullptr;
 
+    /** \initializes python and appends all internal modules
+    can throw
+
+    GIL behaviour:
+    if exception is thrown (python excetion) GIL is not released
+    if no exception is thrown, GIL is released
+    */
     void initPython();
     /// Run Python Script. Does not update any object. save to call from another thread
     bool runPyScript_internal(const QString& _script, bool _clearPrevious);
     /// Does not update all objects, save to call from another thread
     void convertPropsPyToCpp_internal(const IdList& _list);
+    /// return true, if internal modules are initialized
+    bool modules_initialized();
 
 private Q_SLOTS:
 

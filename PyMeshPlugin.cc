@@ -30,13 +30,13 @@ PyMeshPlugin::~PyMeshPlugin()
     if (!Py_IsInitialized())
         return;
 
-    PyGILState_Ensure();//lock GIL for cleanup
+    if (modules_initialized())// dont lock GIL, if modules are not initialized
+    {
+        PyGILState_Ensure();//lock GIL for cleanup
+        Py_XDECREF(global_dict_clean_);
+        main_module_.release();
+    }
     PyErr_Clear();
- 
-    Py_XDECREF(global_dict_clean_);
-
-    main_module_.release();
-
     py::finalize_interpreter();
 }
 
@@ -396,7 +396,6 @@ void PyMeshPlugin::runPyScriptFileAsync(const QString& _filename, bool _clearPre
 
 void PyMeshPlugin::runPyScriptAsync(const QString& _script, bool _clearPrevious)
 {
-    initPython();
     OpenFlipperThread* th = new OpenFlipperThread(g_job_id);
     connect(th, &OpenFlipperThread::finished, this, &PyMeshPlugin::runPyScriptFinished);
 
@@ -424,7 +423,16 @@ bool PyMeshPlugin::runPyScript(const QString& _script, bool _clearPrevious)
 bool PyMeshPlugin::runPyScript_internal(const QString& _script, bool _clearPrevious)
 {
     // init
-    initPython();
+    try
+    {
+        initPython();
+    }
+    catch (py::error_already_set &e)
+    {
+        Q_EMIT log(LOGERR, e.what());
+        e.restore();
+        return false;
+    }
 
     // clear OpenFlipper env
     if (_clearPrevious)
@@ -502,6 +510,11 @@ void PyMeshPlugin::convertPropsPyToCpp_internal(const IdList& _list)
     }
 }
 
+bool PyMeshPlugin::modules_initialized()
+{
+    return static_cast<bool>(main_module_);
+}
+
 void PyMeshPlugin::convertPropsPyToCpp(const IdList& _list)
 {
     convertPropsPyToCpp_internal(_list);
@@ -517,7 +530,7 @@ void PyMeshPlugin::convertPropsPyToCpp(const IdList& _list)
 
 void PyMeshPlugin::resetInterpreter()
 {
-    if (!Py_IsInitialized())
+    if (!Py_IsInitialized() || !modules_initialized())
         return;
 
     PyGILState_STATE state = PyGILState_Ensure();
@@ -529,45 +542,54 @@ void PyMeshPlugin::resetInterpreter()
 
 void PyMeshPlugin::initPython()
 {
-    if (Py_IsInitialized())
+    if (Py_IsInitialized() && modules_initialized())
         return;
 
+    if (!Py_IsInitialized())
     {
         PyImport_AppendInittab("openmesh", openmesh_pyinit_function);
         QStringList functions;
         Q_EMIT getAvailableFunctions(functions);
         auto ofp_init = openflipper_get_init_function(std::move(functions));
         PyImport_AppendInittab("openflipper", std::move(ofp_init));
+
+
+        Py_SetProgramName(Py_DecodeLocale((*OpenFlipper::Options::argv())[0], NULL));
+        py::initialize_interpreter();
+        PyEval_InitThreads();
     }
 
-    Py_SetProgramName(Py_DecodeLocale((*OpenFlipper::Options::argv())[0], NULL));
-    py::initialize_interpreter();
-    //Py_Initialize();
-    PyEval_InitThreads();
-    
+    if (!modules_initialized())
+    {
+        py::module main{ py::module::import("__main__") };
 
-    main_module_ = py::object(py::module::import("__main__"));
+        // redirect python output
+        tyti::pylog::redirect_stderr([this](const char*w) {this->pyError(w); });
+        tyti::pylog::redirect_stdout([this](const char* w) {this->pyOutput(w); });
 
-    // redirect python output
-    tyti::pylog::redirect_stderr([this](const char*w) {this->pyError(w); });
-    tyti::pylog::redirect_stdout([this](const char* w) {this->pyOutput(w); });
+        // add openmesh module    
+        py::object main_namespace = main.attr("__dict__");
 
-    // add openmesh module    
-    py::object main_namespace = main_module_.attr("__dict__");
 
-    py::module om_module(py::module::import("openmesh"));
-    main_namespace["openmesh"] = om_module;
-    py::module of_module(py::module::import("openflipper"));
-    main_namespace["openfipper"] = of_module;
-    global_dict_clean_ = PyDict_Copy(PyModule_GetDict(main_module_.ptr()));
-    
+        py::module om_module(py::module::import("openmesh"));
+        main_namespace["openmesh"] = om_module;
+        py::module of_module(py::module::import("openflipper"));
+        main_namespace["openflipper"] = of_module;
+        global_dict_clean_ = PyDict_Copy(PyModule_GetDict(main.ptr()));
 
-    // hook into mesh constructors
-    registerFactoryMethods(om_module,
-            [this]() {return this->createTriMesh();},
-            [this]() {return this->createPolyMesh();});
 
-    PyEval_SaveThread();
+        // hook into mesh constructors
+        registerFactoryMethods(om_module,
+            [this]() {return this->createTriMesh(); },
+            [this]() {return this->createPolyMesh(); });
+
+        // set the main module member to a validate state, shows, that all modules are successfully initialized
+        main_module_ = std::move(main);
+
+        // Do not release the GIL until all modules are initalzed
+        PyEval_SaveThread();
+    }
+
 }
 
 void PyMeshPlugin::canceledJob(QString _job)

@@ -1,4 +1,5 @@
 # Python Plugin for OpenFlipper
+
 Run Python Scripts in OpenFlipper with OpenMesh-Python support.
 
 This OpenFlipper Plugin runs any Python script and provides OpenFlipper support for meshes
@@ -11,27 +12,33 @@ This allows you to write geometry processing algorithms in Python
 but also use all the OpenFlipper features.
 
 ## Requirements
+
 Note: This project uses submodules, you may want to clone with --recursive.
 
 - [OpenFlipper](https://www.openflipper.org) (version in gitrepo)
 - [Python](https://www.python.org) (tested >= 3.6)
 
+Also make sure, that the OpenMesh requirements i.e. NumPy are installed.
+
 Already included as submodules:
+
 - [pybind11](https://github.com/pybind/pybind11)
 - [OpenMesh-Python](https://www.graphics.rwth-aachen.de:9000/OpenMesh/openmesh-python)
 
 
 ## Build Instructions
+
 - Place (e.g. via git clone --recursive) the files in a directory called "Plugin-PyMesh" into your OpenFlipper source dir.
 - Run CMake
 - Build, using your selected toolchain
 
 ## How-To-Use
-	1. Write a Python script with OpenMesh bindings (nothing else required)
-	2. Start OpenFlipper
-	3. Select your saved Script in PyMesh's Toolbox
-	4. Press "Run Script"
-	5. See your result in the log window and/or the viewer
+
+    1. Write a Python script with OpenMesh bindings (nothing else required)
+    2. Start OpenFlipper
+    3. Select your saved Script in PyMesh's Toolbox
+    4. Press "Run Script"
+    5. See your result in the log window and/or the viewer
 
 Also, have a look at the [example python script.](./python_example_script.py)
 
@@ -39,8 +46,10 @@ You can also use the script language included in OpenFlipper, search for
 `PyMesh.runPyScript` or `PyMesh.runPyScriptFile`.
 
 ## Execute Python Script from a Plugin
+
 If you develop your own OpenFlipper-Plugin, you can execute Python scripts using the [RPC Plugin Interface](http://openflipper.org/Documentation/latest/a00087.html) or by the [internal scripting engine](http://openflipper.org/Documentation/latest/a00119.html).
 The correspoding functions are the following:
+
 ```cpp
 
 bool runPyScriptFile(const QString& _filename, bool _clearPrevious);
@@ -59,10 +68,12 @@ void resetInterpreter();
 
 
 ## OpenFlipper Python Module
+
 Your script has also access to the underlying OpenFlipper module which is automatically
 loaded as a module called "openflipper" into "ofp" namespace (OpenFlipperPython)
 
 Currently, following functions are supported:
+
 ```python
 Mesh = Union[TriMesh,PolyMesh]
 
@@ -84,7 +95,9 @@ ofp.get_id(mesh : Mesh)
 ```
 
 ### OpenFlipper Scripting
+
 The ofp module also provides a lot of function (~90%) which are provided by the OpenFlipper internal script.
+
 ```python
 ofp.plugin.functionname(args)
 ```
@@ -103,6 +116,7 @@ __Note:__ Not all return types are supported (espacially, the function which ret
 
 
 ## About Custom Properties
+
 You can convert all properties with python types (all properties created in python script), to the corresponding C++ Types (i.e. for futher processing or saving in om file format).
 Currently, only pod types and buffers (such as numpy arrays) are supported.
 
@@ -113,6 +127,7 @@ __note:__ The Plugin PropertyVis only supports double/ACG::Vec3d, so you may can
 Lifetime of Meshes are owned by OpenFlipper.
 
 ## Known isses
+
 - Python Mesh in OpenFlipper has already face normals after creation, where the Mesh given back by pure OpenMesh-Python has no face normals
 - Converting Python Props to C++ Props will destroy the backup history. Atm, it is not possible to clear the backup history, so expect some undefined behaviour if you undo before the conversion
 
