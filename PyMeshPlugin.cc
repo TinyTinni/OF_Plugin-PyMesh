@@ -396,6 +396,18 @@ void PyMeshPlugin::runPyScriptFileAsync(const QString& _filename, bool _clearPre
 
 void PyMeshPlugin::runPyScriptAsync(const QString& _script, bool _clearPrevious)
 {
+    // init python on main thread before executing the script
+    try
+    {
+        initPython();
+    }
+    catch (py::error_already_set &e)
+    {
+        Q_EMIT log(LOGERR, e.what());
+        e.restore();
+        return;
+    }
+
     OpenFlipperThread* th = new OpenFlipperThread(g_job_id);
     connect(th, &OpenFlipperThread::finished, this, &PyMeshPlugin::runPyScriptFinished);
 
