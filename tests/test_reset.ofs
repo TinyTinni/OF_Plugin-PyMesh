@@ -1,10 +1,20 @@
 //check if the interpreter is resets
-if(pymesh.runPyScriptFile("@CMAKE_CURRENT_SOURCE_DIR@/test_reset_pre.py", false) == false)
+
+python_code_pre="a = 5\n"
+python_code_post="passed = False\n
+try:\n
+    print(a)\n
+except NameError:\n
+    passed = True\n
+if not passed:\n
+    raise RuntimeError("'a' is defined after reset.")\n
+"
+if(pymesh.runPyScript(python_code_pre, false) == false)
 {
     core.exitFailure()
 }
 pymesh.resetInterpreter()
-if(pymesh.runPyScriptFile("@CMAKE_CURRENT_SOURCE_DIR@/test_reset_post.py", false) == false)
+if(pymesh.runPyScript(python_code_post, false) == false)
 {
 	core.exitFailure()
 }
