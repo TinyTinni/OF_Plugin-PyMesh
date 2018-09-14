@@ -157,6 +157,8 @@ private Q_SLOTS:
 
   void slotconvertPropsPyToCpp();
 
+  void objectDeleted(int _id);
+
 public Q_SLOTS:
   QString version(){ return QString("2.0"); }
 };

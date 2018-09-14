@@ -87,6 +87,15 @@ void PyMeshPlugin::slotconvertPropsPyToCpp()
     convertPropsPyToCpp(tm);
 }
 
+void PyMeshPlugin::objectDeleted(int _id)
+{
+    auto it = std::find(std::begin(createdObjects_), std::end(createdObjects_), _id);
+    if (it == std::end(createdObjects_))
+        return;
+    resetInterpreter();
+    createdObjects_.erase(it);
+}
+
 void PyMeshPlugin::showScriptingFunctions()
 {
     if (OpenFlipper::Options::nogui())
