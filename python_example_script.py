@@ -50,7 +50,7 @@ for name, mesh in ofp.meshes().items():
     print (name)
 	
 # experimental function calls over RPC
-cube_id = ofp.primitivesgenerator.addCube()
+cube_id = ofp.primitivesgenerator.addCube(np.array([1.0,1.0,1.0]))
 # can only be called in gui mode:
 #ofp.backup.createBackup(cube_id, "testing_backup", ofp.Update.GEOMETRY | ofp.Update.TOPOLOGY)
 cube_mesh = ofp.get_mesh(cube_id)

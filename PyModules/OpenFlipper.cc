@@ -8,6 +8,8 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/operators.h>
+#include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 
 #include <OpenFlipper/BasePlugin/RPCWrappers.hh>
 #include <OpenFlipper/common/UpdateType.hh>
@@ -20,6 +22,9 @@ namespace py = pybind11;
 
 py::object rpc_call(const char* plugin_name, const char* function_name, const py::list& py_params/*{ QString:"value",... }*/);
 
+/// Helpers
+
+// Script call helper, from python to rpc (parameter managment)
 class OFScriptCaller
 {
     QString module_name_;
@@ -64,6 +69,48 @@ public:
         return rpc_call((const char*)module_name_.toLatin1(), (const char*)function_name_.toLatin1(), std::move(py_params));
     }
 };
+
+// conversions
+namespace pybind11 {
+    namespace detail {
+        template <typename T, size_t N> 
+        struct type_caster<ACG::VectorT<T, N> >
+        {
+        public:
+
+            using VecT = ACG::VectorT<T, N>;
+
+            PYBIND11_TYPE_CASTER(VecT, _("ACG::VectorT<T, N>"));
+
+            // Conversion part 1 (Python -> C++)
+            bool load(py::handle src, bool convert)
+            {
+                if (!convert && !py::array_t<T>::check_(src))
+                    return false;
+
+                auto buf = py::array_t<T, py::array::c_style | py::array::forcecast>::ensure(src);
+                if (!buf)
+                    return false;
+
+                if (buf.ndim() != 1 || buf.size() != N)
+                    return false;
+
+                value = ACG::VectorT<T, N>(buf.data());
+
+                return true;
+            }
+
+            //Conversion part 2 (C++ -> Python)
+            static py::handle cast(const ACG::VectorT<T, N>& src, py::return_value_policy policy, py::handle parent)
+            {
+                py::array a(N, src.data());
+
+                return a.release();
+
+            }
+        };
+    }
+} // namespace py::detail
 
 // parameter types defined for openflipper scrippting, which are supported by python scripting
 // currently, supports 714 functions out of 802 defined in Free branch (~90%)
@@ -161,7 +208,6 @@ template <>
 std::tuple<bool, py::object> extract_from_qscript<Vector>(QScriptValue& v)
 {
     const int id = qMetaTypeId< Vector >();
-    Vector r;
 
     // todo: check if type is correct
     // i.e. check propertytype
@@ -177,8 +223,9 @@ std::tuple<bool, py::object> extract_from_qscript<Vector>(QScriptValue& v)
     }
     prop_valid = it.hasNext() == it_check.hasNext();
 
+    Vector r;
     if (prop_valid && qscriptvalue_cast_helper(v, id, &r))
-        return std::make_tuple<bool, py::object>(true, py::array_t<double>(r.size(), r.data()));
+        return std::make_tuple<bool, py::object>(true, py::cast(r));
 
     return std::make_tuple(false, py::none());
 }
@@ -187,7 +234,6 @@ template <>
 std::tuple<bool, py::object> extract_from_qscript<Vector4>(QScriptValue& v)
 {
     const int id = qMetaTypeId< Vector4 >();
-    Vector r;
 
     // todo: check if type is correct
     // i.e. check propertytype
@@ -204,8 +250,9 @@ std::tuple<bool, py::object> extract_from_qscript<Vector4>(QScriptValue& v)
 
     prop_valid = it.hasNext() == it_check.hasNext();
 
+    Vector r;
     if (qscriptvalue_cast_helper(v, id, &r))
-        return std::make_tuple<bool, py::object>(true, py::array_t<double>(r.size(), r.data()));
+        return std::make_tuple<bool, py::object>(true, py::cast(r));
 
     return std::make_tuple(false, py::none());
 }
