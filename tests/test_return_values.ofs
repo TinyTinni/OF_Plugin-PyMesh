@@ -1,0 +1,4 @@
+if(pymesh.runPyScriptFile("@CMAKE_CURRENT_SOURCE_DIR@/test_return_values.py", false) == false)
+{
+    core.exitFailure()
+}

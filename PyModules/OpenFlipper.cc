@@ -3,6 +3,7 @@
 #include <OpenFlipper/BasePlugin/PluginFunctions.hh>
 #include <ObjectTypes/PolyMesh/PolyMesh.hh>
 #include <ObjectTypes/TriangleMesh/TriangleMesh.hh>
+#include <OpenFlipper/common/DataTypes.hh>
 #include <ACG/Utils/SmartPointer.hh>
 
 #include <pybind11/pybind11.h>
@@ -123,6 +124,92 @@ py::dict meshes()
     PluginFunctions::getAllMeshes(ids);
     return create_dict_from_ids(ids);
 }
+////////////////////////////////////////////////////////////////////////////////////////
+// first clumsy try to convert from qscriptvalue to some custom type
+// qscriptvalue_cast does not return, whether the type is correct or not (could cast Vector to IdList)
+// + add some conversion functionality to python (i.e. numpy for matrix, use pybind11/stl for IdList)
+// current solution: check the property names which is slow
+template <typename T>
+std::tuple<bool, py::object> extract_from_qscript(QScriptValue& v)
+{
+    //const int id  = qMetaTypeId< T >();
+    //T r;
+
+    //// todo: check if type is correct
+
+
+    //if (qscriptvalue_cast_helper(v, id, &r))
+    //    return std::make_tuple<bool, py::object>(true, py::array_t<double>(r.size(), r.data()) );
+    //else
+    //{
+    //    bool b = v.isVariant();
+    //    if (b)
+    //    {
+    //        b = v.toVariant().canConvert<T>();
+    //        if (b)
+    //        {
+    //            r = qvariant_cast<T>(v.toVariant());
+    //            return std::make_tuple(b, py::cast(r));
+    //        }
+    //    }
+    //}
+
+    return std::make_tuple(false, py::none());
+}
+
+template <>
+std::tuple<bool, py::object> extract_from_qscript<Vector>(QScriptValue& v)
+{
+    const int id = qMetaTypeId< Vector >();
+    Vector r;
+
+    // todo: check if type is correct
+    // i.e. check propertytype
+    QScriptValueIterator it(v);
+    QVector<QString> prop_check = { "x","y","z" };
+    QVectorIterator<QString> it_check(prop_check);
+
+    bool prop_valid = true;
+    while (it.hasNext() && it_check.hasNext() && prop_valid)
+    {
+        it.next();
+        prop_valid = it.name() == it_check.next();
+    }
+    prop_valid = it.hasNext() == it_check.hasNext();
+
+    if (prop_valid && qscriptvalue_cast_helper(v, id, &r))
+        return std::make_tuple<bool, py::object>(true, py::array_t<double>(r.size(), r.data()));
+
+    return std::make_tuple(false, py::none());
+}
+
+template <>
+std::tuple<bool, py::object> extract_from_qscript<Vector4>(QScriptValue& v)
+{
+    const int id = qMetaTypeId< Vector4 >();
+    Vector r;
+
+    // todo: check if type is correct
+    // i.e. check propertytype
+    QScriptValueIterator it(v);
+    QVector<QString> prop_check = { "x","y","z","w" }; //is w correct?
+    QVectorIterator<QString> it_check(prop_check);
+
+    bool prop_valid = true;
+    while (it.hasNext() && it_check.hasNext() && prop_valid)
+    {
+        it.next();
+        prop_valid = it.name() == it_check.next();
+    }
+
+    prop_valid = it.hasNext() == it_check.hasNext();
+
+    if (qscriptvalue_cast_helper(v, id, &r))
+        return std::make_tuple<bool, py::object>(true, py::array_t<double>(r.size(), r.data()));
+
+    return std::make_tuple(false, py::none());
+}
+////////////////////////////////////////////////////////////////////////////////////////
 
 py::object rpc_call(const char* plugin_name, const char* function_name, std::vector<QScriptValue> params)
 {
@@ -133,6 +220,25 @@ py::object rpc_call(const char* plugin_name, const char* function_name, std::vec
         return py::cast(ret.toString().toStdString());
     if (ret.isBool())
         return py::cast(ret.toBool());
+
+    // insert here: qobjects (if supported by python engine)
+
+    bool is_type;
+    py::object result;
+
+    std::tie(is_type, result) = extract_from_qscript<Vector>(ret);
+    if (is_type) return result;
+    //std::tie(is_type, result) = extract_from_qscript<Vector4>(ret);
+    //if (is_type) return result; //todo: check the property names
+    //std::tie(is_type, result) = extract_from_qscript<Matrix4x4>(ret);
+    //if (is_type) return result; //todo: property names & how to create a matrix
+    //std::tie(is_type, result) = extract_from_qscript<UpdateType>(ret);
+    //if (is_type) return result; //todo: test
+
+    if (!ret.isNull())
+    {
+        //warning?
+    }
 
     //cannot cast to pytype -> return none (no error)
     return py::none();
