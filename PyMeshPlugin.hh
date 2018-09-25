@@ -88,10 +88,8 @@ Q_SIGNALS:
 public Q_SLOTS:
 
   bool runPyScriptFile(const QString& _filename, bool _clearPrevious);
-  void runPyScriptFileAsync(const QString& _filename, bool _clearPrevious);
 
   bool runPyScript(const QString& _script, bool _clearPrevious);
-  void runPyScriptAsync(const QString& _script, bool _clearPrevious);
 
   void convertPropsPyToCpp(const IdList& _list);
 
@@ -136,6 +134,9 @@ private:
     void convertPropsPyToCpp_internal(const IdList& _list);
     /// return true, if internal modules are initialized
     bool modules_initialized();
+
+    void runPyScriptFileAsync(const QString& _filename, bool _clearPrevious);
+    void runPyScriptAsync(const QString& _script, bool _clearPrevious);
 
 private Q_SLOTS:
 

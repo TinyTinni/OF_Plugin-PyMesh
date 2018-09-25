@@ -52,11 +52,11 @@ The corresponding functions are the following:
 
 ```cpp
 
+// execute a python script file
 bool runPyScriptFile(const QString& _filename, bool _clearPrevious);
-void runPyScriptFileAsync(const QString& _filename, bool _clearPrevious);
 
+// execute python code
 bool runPyScript(const QString& _script, bool _clearPrevious);
-void runPyScriptAsync(const QString& _script, bool _clearPrevious);
 
 // try to convert all properties from PyObject to the corresponding C++ type
 void convertPropsPyToCpp(const IdList& _list);
