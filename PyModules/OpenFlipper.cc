@@ -73,42 +73,41 @@ public:
 // conversions
 namespace pybind11 {
     namespace detail {
-        template <typename T, size_t N> 
-        struct type_caster<ACG::VectorT<T, N> >
-        {
-        public:
 
-            using VecT = ACG::VectorT<T, N>;
-
-            PYBIND11_TYPE_CASTER(VecT, _("ACG::VectorT<T, N>"));
-
-            // Conversion part 1 (Python -> C++)
-            bool load(py::handle src, bool convert)
-            {
-                if (!convert && !py::array_t<T>::check_(src))
-                    return false;
-
-                auto buf = py::array_t<T, py::array::c_style | py::array::forcecast>::ensure(src);
-                if (!buf)
-                    return false;
-
-                if (buf.ndim() != 1 || buf.size() != N)
-                    return false;
-
-                value = ACG::VectorT<T, N>(buf.data());
-
-                return true;
-            }
-
-            //Conversion part 2 (C++ -> Python)
-            static py::handle cast(const ACG::VectorT<T, N>& src, py::return_value_policy policy, py::handle parent)
-            {
-                py::array a(N, src.data());
-
-                return a.release();
-
-            }
+#define DEFINE_VECTOR_TYPE_CASTER(T, N)\
+        template<>\
+        struct type_caster<ACG::VectorT<T, N> >\
+        {\
+        public:\
+            using VecT = ACG::VectorT<T, N>;\
+\
+            PYBIND11_TYPE_CASTER(VecT, _("ACG::VectorT<"#T", "#N">"));\
+            /*py -> c++*/\
+            bool load(py::handle src, bool convert)\
+            {\
+                if (!convert && !py::array_t<double>::check_(src))\
+                    return false;\
+                auto buf = py::array_t<double, py::array::c_style | py::array::forcecast>::ensure(src);\
+                if (!buf)\
+                    return false;\
+                if (buf.ndim() != 1 || buf.size() != N)\
+                    return false;\
+                value = VecT(buf.data());\
+                return true;\
+            }\
+           /* c++ -> py*/\
+            static py::handle cast(const VecT& src, py::return_value_policy policy, py::handle parent)\
+            {\
+                py::array a(N, src.data());\
+                return a.release();\
+            }\
         };
+    // END DEFINE_VECTOR_TYPE_CASTER
+
+    DEFINE_VECTOR_TYPE_CASTER(double, 3)
+    DEFINE_VECTOR_TYPE_CASTER(double, 4)
+#undef DEFINE_VECTOR_TYPE_CASTER
+
     }
 } // namespace py::detail
 
