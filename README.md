@@ -135,4 +135,4 @@ Lifetime of Meshes are owned by OpenFlipper.
 Project was created and tested on Windows VS2017 and Linux using GCC8.
 
 ## License
-[GPLv3 License](./LICENSE) © Matthias Möller. Made with ♥ in Germany.
+[BSD 3-Clause](./LICENSE) © Matthias Möller. Made with ♥ in Germany.
