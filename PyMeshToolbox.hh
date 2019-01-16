@@ -27,7 +27,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "ui_toolbox.hh"
+#pragma once
+
+#include "ui_toolbox.h"
 #include <QtWidgets>
 
 
