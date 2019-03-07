@@ -1,7 +1,9 @@
 # Python Plugin for OpenFlipper
 __Note: With the Release of OpenFlipper 4.0, this Plugin got integrated into the OpenFlipper Core. This ensures a better performance and also enables some features, which are not possible to implement by just using a Plugin.__
 
-__Currently (2019-03-07), it seems that the Core Version does not support the manipulation of meshes via Python, but it looks like the OF/OM-team is working on it (upstream OpenMesh-Python got similar changes to the OpenMesh-Python version in this Repository) and the support should only be a matter of time. Therefore, with the integration to the Core, this Plugin should be obsolete and I will no longer support it.__
+Currently (2019-03-07), it seems that the Core Version does not support the manipulation of meshes via Python, but it looks like the OF/OM-team is working on it (upstream OpenMesh-Python got similar changes to the OpenMesh-Python version in this Repository) and the support should only be a matter of time.
+
+Therefore, with the integration to the Core, __this Plugin should be obsolete and I will no longer support it.__
 
 Run Python Scripts in OpenFlipper with OpenMesh-Python support.
 
