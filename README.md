@@ -20,7 +20,7 @@ but also use all the OpenFlipper features.
 
 Note: This project uses submodules, you may want to clone with --recursive.
 
-- [OpenFlipper](https://www.openflipper.org) (version in gitrepo)
+- [OpenFlipper](https://www.openflipper.org) (4.0+)
 - [Python](https://www.python.org) (tested >= 3.6)
 
 Also make sure, that the OpenMesh requirements i.e. NumPy are installed.
